@@ -1,6 +1,8 @@
 name: Deploy to GitHub Pages
 
-# Builds the site and publishes dist/ to the gh-pages branch, which GitHub Pages serves.
+# Builds the site and publishes it. Works with either GitHub Pages source setting:
+#  - "GitHub Actions"  → deployed with actions/deploy-pages
+#  - "Deploy from a branch" (gh-pages) → dist/ pushed to the gh-pages branch
 on:
   push:
     branches: [main]
@@ -8,6 +10,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
@@ -16,6 +20,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,7 +35,16 @@ jobs:
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
           VITE_CESIUM_ION_TOKEN: ${{ secrets.CESIUM_ION_TOKEN }}
-      - name: Publish to gh-pages
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy (Pages source = GitHub Actions)
+        id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Publish to gh-pages (Pages source = branch)
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -36,3 +52,9 @@ jobs:
           publish_branch: gh-pages
           force_orphan: true
           enable_jekyll: false
+      # Pushes made with GITHUB_TOKEN do not start a branch Pages build on their own.
+      - name: Request branch Pages build
+        if: steps.deployment.outcome != 'success'
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || echo "Pages build request failed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
