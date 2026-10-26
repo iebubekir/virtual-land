@@ -1,0 +1,23 @@
+{
+  "name": "virtual-land",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TKGM KML parsel sınırlarını çevresindeki 3B ev ve ağaçlarla dünya üzerinde gösteren site",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@tmcw/togeojson": "^7.1.3",
+    "cesium": "^1.146.0",
+    "jszip": "^3.10.2"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "^0.9.12",
+    "vite": "^8.3.5",
+    "vite-plugin-static-copy": "^4.1.1"
+  }
+}
