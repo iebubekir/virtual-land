@@ -94,6 +94,43 @@
         </div>
       </section>
 
+      <section class="card" id="presentCard" hidden>
+        <h3 data-i18n="presentTitle"></h3>
+        <ol class="steps">
+          <li>
+            <div><b data-i18n="step1"></b><small data-i18n="step1Help"></small></div>
+            <button class="btn small" id="captureBtn"><span data-i18n="captureBtn"></span></button>
+          </li>
+          <li>
+            <div><b data-i18n="step2"></b><small data-i18n="step2Help"></small></div>
+            <button class="btn small ghost" id="copyPromptBtn"><span data-i18n="copyPrompt"></span></button>
+          </li>
+          <li>
+            <div><b data-i18n="step3"></b><small data-i18n="step3Help"></small></div>
+            <button class="btn small" id="overlayBtn"><span data-i18n="uploadEnhanced"></span></button>
+          </li>
+        </ol>
+        <div class="overlay-row" id="overlayRow" hidden>
+          <label class="toggle"><input type="checkbox" id="overlayToggle" /><span data-i18n="showEnhanced"></span></label>
+          <button class="text-btn danger" id="overlayRemove" data-i18n="remove"></button>
+        </div>
+        <div class="video-box">
+          <b data-i18n="step4"></b>
+          <label class="field inline">
+            <span data-i18n="videoFormat"></span>
+            <select id="videoFormat">
+              <option value="portrait" data-i18n="formatPortrait"></option>
+              <option value="landscape" data-i18n="formatLandscape"></option>
+            </select>
+          </label>
+          <label class="toggle"><input type="checkbox" id="disclaimerToggle" checked /><span data-i18n="disclaimerToggle"></span></label>
+          <button class="btn primary wide" id="recordBtn">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="3" fill="currentColor" /></svg>
+            <span data-i18n="recordVideo"></span>
+          </button>
+        </div>
+      </section>
+
       <section class="card" id="layersCard">
         <h3 data-i18n="layers"></h3>
         <label class="field">
@@ -143,6 +180,12 @@
     </div>
 
     <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <div class="rec-overlay" id="recOverlay" hidden>
+      <div class="rec-badge"><span class="rec-dot"></span><span id="recText"></span></div>
+    </div>
+
+    <input type="file" id="overlayInput" accept="image/png,image/jpeg,image/webp" hidden />
 
     <div class="dropzone" id="dropzone" hidden>
       <div>

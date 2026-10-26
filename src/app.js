@@ -8,6 +8,7 @@ import { parseParcelFile, serializeParcel, deserializeParcel } from './lib/parce
 import { formatArea } from './lib/geo.js';
 import { settings, canUsePhoto, effectiveViewMode, IS_MOBILE } from './settings.js';
 import { setLang, t, LANGS, getLang, numberLocale } from './i18n.js';
+import { captureTopDown, OverlayManager, recordVideo, download, parcelKey, ENHANCE_PROMPT_TR, CAPTURE_SIZE } from './scene/presentation.js';
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) =>
@@ -25,6 +26,8 @@ setLang(settings.lang);
 const sceneApi = createViewer($('#globe'));
 const layer = new ParcelLayer(sceneApi, { onSelect: (id) => select(id, false) });
 const surroundings = new Surroundings(sceneApi);
+const overlays = new OverlayManager(sceneApi);
+const CAPTURE_KEY = 'vl.capture.';
 layer.setOptions({ edgeLabels: settings.edgeLabels, fence: settings.fence });
 layer.onOrbitChange = (on) => {
   $('#toolOrbit').classList.toggle('on', on);
@@ -32,7 +35,7 @@ layer.onOrbitChange = (on) => {
 };
 
 // expose for debugging / automated checks
-window.vl = { sceneApi, layer, surroundings, parcels };
+window.vl = { sceneApi, layer, surroundings, parcels, overlays };
 
 /* ---------------- helpers ---------------- */
 
@@ -102,12 +105,19 @@ async function applyMode() {
   }
   $('#viewModeSelect').value = mode;
   $('#osmOptions').hidden = mode !== 'osm';
-  surroundings.visible = mode === 'osm' && settings.surroundings;
+  syncSurroundingsVisibility();
   surroundings.clear();
   for (const p of parcels.values()) delete p.groundHeight;
   layer.refreshAllHeights();
   const sel = parcels.get(selectedId);
   if (sel) loadSurroundings(sel);
+}
+
+/** 3D trees/houses are hidden while an AI-enhanced image is draped on the selected parcel. */
+function syncSurroundingsVisibility() {
+  const p = parcels.get(selectedId);
+  const overlayOn = p ? overlays.isVisible(parcelKey(p)) : false;
+  surroundings.visible = sceneApi.mode === 'osm' && settings.surroundings && !overlayOn;
 }
 
 async function loadSurroundings(parcel) {
@@ -142,6 +152,8 @@ function addParcels(list, { fly = true } = {}) {
 }
 
 function removeParcel(id) {
+  const removed = parcels.get(id);
+  if (removed) overlays.remove(parcelKey(removed));
   layer.remove(id);
   parcels.delete(id);
   if (selectedId === id) {
@@ -167,6 +179,7 @@ async function select(id, fly = true) {
   // On phones the bottom sheet would hide the parcel: close it while flying there,
   // and open it when the parcel was tapped on the map (details wanted).
   if (IS_MOBILE) $('#panel').classList.toggle('open', !fly && changed);
+  syncSurroundingsVisibility();
   if (fly) await layer.flyTo(p, '3d');
   if (selectedId === id) loadSurroundings(p);
 }
@@ -233,6 +246,7 @@ function renderList() {
 function renderDetails() {
   const p = parcels.get(selectedId);
   $('#detailsCard').hidden = !p;
+  $('#presentCard').hidden = !p;
   $('#mapToolbar').hidden = !p;
   if (!p) return;
 
@@ -266,6 +280,10 @@ function renderDetails() {
     .flatMap((poly) => poly[0])
     .map(([lon, lat], i) => `${String(i + 1).padStart(2, ' ')}  ${lat.toFixed(7)}, ${lon.toFixed(7)}`)
     .join('\n');
+  $('#presentCard').hidden = false;
+  const key = parcelKey(p);
+  $('#overlayRow').hidden = !overlays.has(key);
+  $('#overlayToggle').checked = overlays.isVisible(key);
   $('#gmapsLink').href = `https://www.google.com/maps?q=${p.centroid[1].toFixed(7)},${p.centroid[0].toFixed(7)}&t=k`;
 }
 
@@ -376,7 +394,7 @@ function bindUI() {
   });
   $('#surroundingsToggle').addEventListener('change', (e) => {
     settings.surroundings = e.target.checked;
-    surroundings.visible = e.target.checked && sceneApi.mode === 'osm';
+    syncSurroundingsVisibility();
     const p = parcels.get(selectedId);
     if (e.target.checked && p) loadSurroundings(p);
     else status(null);
@@ -485,6 +503,127 @@ function changeLang(l) {
   if (layer.orbiting) $('#orbitLabel').textContent = t('stopOrbit');
 }
 
+
+/* ---------------- presentation: AI image + video ---------------- */
+
+function fileSafe(s) {
+  return String(s).replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '') || 'parsel';
+}
+
+function bindPresentation() {
+  const current = () => parcels.get(selectedId);
+
+  $('#captureBtn').addEventListener('click', async () => {
+    const p = current();
+    if (!p) return;
+    status(t('capturing'), { loading: true });
+    try {
+      const { blob, rect } = await captureTopDown({ sceneApi, layer, surroundings, overlays, parcel: p });
+      try {
+        localStorage.setItem(CAPTURE_KEY + parcelKey(p), JSON.stringify(rect));
+      } catch {
+        /* storage blocked */
+      }
+      download(blob, `virtual-land-${fileSafe(p.label)}-ustten.png`);
+      status(t('captureDone'), { autoHide: 7000 });
+    } catch (err) {
+      console.warn(err);
+      status(null);
+      toast(String(err.message || err), 'error');
+    }
+  });
+
+  $('#copyPromptBtn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(ENHANCE_PROMPT_TR);
+      toast(t('promptCopied'));
+    } catch {
+      window.prompt('', ENHANCE_PROMPT_TR);
+    }
+  });
+
+  const overlayInput = $('#overlayInput');
+  $('#overlayBtn').addEventListener('click', () => {
+    const p = current();
+    if (!p) return;
+    if (!localStorage.getItem(CAPTURE_KEY + parcelKey(p))) {
+      toast(t('overlayNeedsCapture'), 'error', 6000);
+      return;
+    }
+    overlayInput.click();
+  });
+  overlayInput.addEventListener('change', async () => {
+    const file = overlayInput.files[0];
+    overlayInput.value = '';
+    const p = current();
+    if (!file || !p) return;
+    const rect = JSON.parse(localStorage.getItem(CAPTURE_KEY + parcelKey(p)) || 'null');
+    if (!rect) return;
+    try {
+      const bmp = await createImageBitmap(file);
+      const aspect = bmp.width / bmp.height;
+      bmp.close?.();
+      const expected = CAPTURE_SIZE.width / CAPTURE_SIZE.height;
+      if (Math.abs(aspect - expected) / expected > 0.04) toast(t('overlayAspect', { a: aspect.toFixed(2) }), 'error', 7000);
+      await overlays.add(parcelKey(p), file, rect);
+      syncSurroundingsVisibility();
+      renderDetails();
+      toast(t('overlayAdded'));
+    } catch (err) {
+      console.warn(err);
+      toast(t('loadFailed', { f: file.name }), 'error');
+    }
+  });
+  $('#overlayToggle').addEventListener('change', (e) => {
+    const p = current();
+    if (!p) return;
+    overlays.setVisible(parcelKey(p), e.target.checked);
+    syncSurroundingsVisibility();
+    if (!e.target.checked) loadSurroundings(p);
+  });
+  $('#overlayRemove').addEventListener('click', () => {
+    const p = current();
+    if (!p) return;
+    overlays.remove(parcelKey(p));
+    syncSurroundingsVisibility();
+    renderDetails();
+    loadSurroundings(p);
+  });
+
+  $('#recordBtn').addEventListener('click', async () => {
+    const p = current();
+    if (!p) return;
+    const rec = $('#recOverlay');
+    rec.hidden = false;
+    $('#recText').textContent = t('preparing');
+    const place = [p.attrs.mahalle, p.attrs.ilce, p.attrs.il].filter(Boolean).join(', ');
+    const area = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(Number.isFinite(p.declaredArea) ? p.declaredArea : p.computedArea);
+    const info = {
+      title: p.attrs.ada && p.attrs.parsel ? `Ada ${p.attrs.ada} / Parsel ${p.attrs.parsel}` : p.label,
+      area: `${area} m²`,
+      place,
+      disclaimer: $('#disclaimerToggle').checked ? t('disclaimerText') : '',
+    };
+    try {
+      const { blob, ext } = await recordVideo({
+        sceneApi,
+        layer,
+        parcel: p,
+        format: $('#videoFormat').value,
+        info,
+        onProgress: (k) => ($('#recText').textContent = t('recording', { p: Math.round(k * 100) })),
+      });
+      download(blob, `virtual-land-${fileSafe(p.label)}.${ext}`);
+      toast(t('videoDone'));
+    } catch (err) {
+      console.warn(err);
+      toast(t('videoFailed'), 'error', 7000);
+    } finally {
+      rec.hidden = true;
+    }
+  });
+}
+
 /* ---------------- boot ---------------- */
 
 function restore() {
@@ -497,6 +636,10 @@ function restore() {
       layer.add(p);
     }
     renderList();
+    overlays.restore(list.map(parcelKey)).then(() => {
+      syncSurroundingsVisibility();
+      renderDetails();
+    });
     const last = list[list.length - 1];
     select(last.id, true);
     return true;
@@ -507,6 +650,7 @@ function restore() {
 }
 
 bindUI();
+bindPresentation();
 syncControls();
 await applyMode();
 syncControls();

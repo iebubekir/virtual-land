@@ -808,6 +808,126 @@ dialog::backdrop {
   display: none;
 }
 
+/* ---------- presentation / video ---------- */
+.steps {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  counter-reset: step;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 10px 12px;
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step);
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 12px;
+  background: rgba(255, 212, 59, 0.15);
+  color: var(--accent);
+}
+
+.steps li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.steps b {
+  display: block;
+  font-size: 13px;
+}
+
+.steps small {
+  display: block;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.btn.small {
+  height: 32px;
+  padding: 0 11px;
+  font-size: 12.5px;
+  border-radius: 9px;
+  flex: none;
+}
+
+.btn.wide {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.overlay-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.video-box {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.video-box > b {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.rec-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgba(5, 10, 16, 0.82);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 16px;
+}
+
+.rec-badge {
+  position: relative;
+  z-index: 41;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  border-radius: 99px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.rec-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #ff4d4f;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
 /* ---------- mobile ---------- */
 @media (max-width: 760px) {
   .topbar {

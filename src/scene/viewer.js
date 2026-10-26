@@ -112,10 +112,11 @@ export function createViewer(container) {
     mode: 'osm',
     hasTerrain: false,
 
+    /** Replaces only the basemap layers (kept at the bottom); overlays added later stay on top. */
     setBasemap(name) {
       const layers = viewer.imageryLayers;
-      layers.removeAll();
-      (BASEMAPS[name] || BASEMAPS.satelliteLabels)().forEach((p) => layers.addImageryProvider(p));
+      (api._basemapLayers || []).forEach((l) => layers.remove(l, true));
+      api._basemapLayers = (BASEMAPS[name] || BASEMAPS.satelliteLabels)().map((p, i) => layers.addImageryProvider(p, i));
       api.kick?.();
     },
 
