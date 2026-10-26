@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./app-4-12Ubzw.js","./rolldown-runtime-COiEfhsA.js","./preload-helper-CRzLMJPS.js","./parcels-Be6QJgH_.js","./zip-reader-DhleZflF.js","./app-C7f7ppeZ.css"])))=>i.map(i=>d[i]);
+import"./modulepreload-polyfill-P2Xu9kJm.js";import{t as e}from"./preload-helper-CRzLMJPS.js";window.CESIUM_BASE_URL=new URL(`../cesium/`,import.meta.url).href,e(()=>import(`./app-4-12Ubzw.js`),__vite__mapDeps([0,1,2,3,4,5]),import.meta.url);

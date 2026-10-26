@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Virtual Land — Arsa tanıtım videosu</title>
+    <meta name="description" content="KML dosyanızı ya da Ada/Parsel numaranızı gönderin; parsel sınırları çizilmiş, yakın yerleri gösteren dikey arsa tanıtım videonuzu hazırlayalım." />
+    <meta name="theme-color" content="#12261e" />
+    <meta property="og:title" content="Virtual Land — Arsa tanıtım videosu" />
+    <meta property="og:description" content="Parsel sınırı, tapu bilgileri ve çevresiyle arsanızı anlatan dikey video." />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="./assets/home-CbCmSu6V.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-COiEfhsA.js">
+    <link rel="modulepreload" crossorigin href="./assets/modulepreload-polyfill-P2Xu9kJm.js">
+    <link rel="modulepreload" crossorigin href="./assets/leaflet-src-BXdv2rsm.js">
+    <link rel="modulepreload" crossorigin href="./assets/common-BaMgQ_JQ.js">
+    <link rel="stylesheet" crossorigin href="./assets/leaflet-src-vh-t_kPv.css">
+    <link rel="stylesheet" crossorigin href="./assets/common-Bb-W0zV_.css">
+    <link rel="stylesheet" crossorigin href="./assets/home-7zPcXpJ4.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="logo" href="./" aria-label="Virtual Land ana sayfa">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#12261e" /><path d="M10 25 17 11l14 5 -2 13 -12 3z" fill="#f4c430" fill-opacity=".25" stroke="#f4c430" stroke-width="2.4" stroke-linejoin="round" /><circle cx="10" cy="25" r="2.2" fill="#fff" /><circle cx="17" cy="11" r="2.2" fill="#fff" /><circle cx="31" cy="16" r="2.2" fill="#fff" /></svg>
+          Virtual Land
+        </a>
+        <nav class="site-nav" aria-label="Sayfa bölümleri">
+          <a href="#nasil">Nasıl çalışır</a>
+          <a href="#icerik">Videoda neler var</a>
+          <a href="#paketler">Paketler</a>
+          <a href="#sss">Sorular</a>
+        </nav>
+        <a class="btn btn-dark" href="siparis/">Sipariş ver</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="hero-kicker">Emlak ofisleri ve arsa sahipleri için</p>
+            <h1>Arsanızı haritada anlatan video.</h1>
+            <p class="lead">
+              KML dosyanızı ya da Ada/Parsel numaranızı gönderin. Sınırları çizilmiş, tapu bilgileri ve yakın yerleri
+              gösteren dikey tanıtım videonuz <span data-delivery>24 saat içinde</span> hazır.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="siparis/">Sipariş ver</a>
+              <a class="btn btn-ghost" href="harita/?sample=1">Örnek arsayı 3B gör</a>
+            </div>
+            <ul class="hero-facts">
+              <li><b>1080×1920</b> Reels, TikTok ve Shorts için dikey</li>
+              <li><b>Logonuz</b> ve telefonunuz videoda</li>
+              <li><b>KML</b> yoksa Ada/Parsel yeterli</li>
+            </ul>
+          </div>
+
+          <figure class="phone" aria-label="Örnek video önizlemesi">
+            <div class="phone-screen">
+              <div id="heroMap" class="hero-map"></div>
+              <div class="phone-brand">
+                <span class="dot"></span>
+                Gayrimenkul Ofisi
+              </div>
+              <div class="phone-chips">
+                <span>Mudanya merkez <b>6,1 km</b></span>
+                <span>Otoyol <b>2,4 km</b></span>
+                <span>Deniz <b>3,8 km</b></span>
+              </div>
+              <div class="phone-card">
+                <div class="pc-row">
+                  <span>Ada 101 / Parsel 7</span>
+                  <span class="pc-tag">Zeytinlik</span>
+                </div>
+                <strong>2.565 m²</strong>
+                <small>Örnek, Mudanya, Bursa</small>
+              </div>
+            </div>
+            <figcaption>Örnek kare. Görüntü: Esri</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="band" id="nasil">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Dört adımda video</h2>
+            <p>Siparişiniz birkaç dakikanızı alır, gerisi bizde.</p>
+          </div>
+          <ol class="steps">
+            <li>
+              <h3>Arsanızı gönderin</h3>
+              <p>TKGM Parsel Sorgu’dan aldığınız KML/KMZ dosyasını yükleyin ya da il, ilçe, mahalle, Ada ve Parsel numarasını yazın.</p>
+            </li>
+            <li>
+              <h3>Paketinizi seçin</h3>
+              <p>Harita sunumu, sinematik video ya da yatay video ve sosyal medya görselleriyle tam paket.</p>
+            </li>
+            <li>
+              <h3>İmzanızı ekleyin</h3>
+              <p>Logonuzu, ofis adınızı ve telefonunuzu yükleyin; videoda öne çıkmasını istediğiniz yakın yerleri seçin.</p>
+            </li>
+            <li>
+              <h3>Videonuz WhatsApp’tan gelsin</h3>
+              <p>Sipariş WhatsApp’a düşer, onaylıyoruz ve videonuzu <span data-delivery>24 saat içinde</span> gönderiyoruz.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- WHAT'S IN THE VIDEO -->
+      <section class="band band-sheet" id="icerik">
+        <div class="wrap content-grid">
+          <div class="deed" aria-label="Videoda gösterilen parsel bilgileri örneği">
+            <div class="deed-corner tl"></div>
+            <div class="deed-corner tr"></div>
+            <div class="deed-corner bl"></div>
+            <div class="deed-corner br"></div>
+            <p class="deed-title">Parsel bilgileri</p>
+            <dl>
+              <dt>İl / İlçe</dt>
+              <dd>Bursa / Mudanya</dd>
+              <dt>Mahalle</dt>
+              <dd>Örnek</dd>
+              <dt>Ada / Parsel</dt>
+              <dd>101 / 7</dd>
+              <dt>Alan</dt>
+              <dd>2.565,40 m²</dd>
+              <dt>Nitelik</dt>
+              <dd>Zeytinlik</dd>
+            </dl>
+            <p class="deed-title">Yakın yerler</p>
+            <ul class="deed-near">
+              <li><span>Mudanya merkez</span><b>6,1 km</b></li>
+              <li><span>Otoyol bağlantısı</span><b>2,4 km</b></li>
+              <li><span>Sahil</span><b>3,8 km</b></li>
+              <li><span>Okul</span><b>1,2 km</b></li>
+            </ul>
+          </div>
+          <div class="content-copy">
+            <h2>Alıcının soracağı her şey tek videoda</h2>
+            <ul class="content-list">
+              <li>
+                <h3>Sınır ve alan</h3>
+                <p>Parsel sınırı uydu görüntüsü üzerine çizilir; tapu alanı, nitelik ve Ada/Parsel bilgisi ekranda kalır.</p>
+              </li>
+              <li>
+                <h3>Çevresi ve ulaşım</h3>
+                <p>Şehir merkezi, ana yol, okul, sahil gibi yakın yerler mesafeleriyle gösterilir; ulaşım yolu haritada vurgulanır.</p>
+              </li>
+              <li>
+                <h3>Sizin markanız</h3>
+                <p>Logonuz, ofis adınız ve telefonunuz videonun başında ve sonunda. Video sizin adınıza paylaşılmaya hazır gelir.</p>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- PACKAGES -->
+      <section class="band" id="paketler">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Paketler</h2>
+            <p>Fiyatlar video başınadır. Ödemeyi siparişiniz onaylandıktan sonra yaparsınız.</p>
+          </div>
+          <div class="packages" id="packages"></div>
+        </div>
+      </section>
+
+      <!-- LIVE DEMO -->
+      <section class="demo">
+        <div class="wrap demo-grid">
+          <div>
+            <h2>Önce kendiniz bakın</h2>
+            <p>
+              Arsanızın KML dosyasını 3B haritaya sürükleyin: sınırları, kenar uzunlukları, alanı ve çevresindeki evlerle
+              ağaçlar saniyeler içinde çizilir. Ücretsiz, kayıt gerekmez.
+            </p>
+          </div>
+          <a class="btn btn-primary" href="harita/">3B haritayı aç</a>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="band" id="sss">
+        <div class="wrap faq-grid">
+          <div class="section-head">
+            <h2>Sık sorulanlar</h2>
+            <p>Yanıtını bulamadığınız soruyu WhatsApp’tan sorabilirsiniz.</p>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>KML dosyam yok, yine de sipariş verebilir miyim?</summary>
+              <p>Evet. İl, ilçe, mahalle, Ada ve Parsel numarasını yazmanız yeterli; parsel sınırını TKGM kaydından biz alırız. İsterseniz haritada konumu da işaretleyebilirsiniz.</p>
+            </details>
+            <details>
+              <summary>KML dosyasını nereden alırım?</summary>
+              <p>parselsorgu.tkgm.gov.tr adresinde arsanızı bulun, paylaş/indir menüsünden KML’i seçin. Dosyayı sipariş formuna sürüklemeniz yeterli.</p>
+            </details>
+            <details>
+              <summary>Videoda hangi yakın yerler gösterilir?</summary>
+              <p>Sipariş sırasında listeden seçtikleriniz (şehir merkezi, okul, hastane, sahil gibi) ve not olarak yazdığınız yerler. Mesafeleri biz ölçeriz.</p>
+            </details>
+            <details>
+              <summary>Sinematik paketteki görüntüler gerçek drone çekimi mi?</summary>
+              <p>Hayır. Uydu görüntüleri yapay zekâ ile netleştirilir ve kamera hareketleri bilgisayarda oluşturulur. Videoda bunu belirten küçük bir not yer alır; alıcıyı yanıltmamak için önemlidir.</p>
+            </details>
+            <details>
+              <summary>Ödemeyi nasıl yapıyorum?</summary>
+              <p>Siparişiniz WhatsApp’tan bize ulaşınca kontrol edip onaylıyoruz ve ödeme bilgilerini iletiyoruz. Ödeme sonrası üretime başlıyoruz.</p>
+            </details>
+            <details>
+              <summary>Video ne zaman teslim edilir?</summary>
+              <p>Ödeme onayından sonra <span data-delivery>24 saat içinde</span>. Acil teslim seçeneğiyle aynı gün.</p>
+            </details>
+            <details>
+              <summary>Değişiklik isteyebilir miyim?</summary>
+              <p>Tam Paket’te bir revizyon dahildir; diğer paketlere ek revizyon hakkı ekleyebilirsiniz. Yazım ve bilgi hataları her pakette ücretsiz düzeltilir.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="final">
+        <div class="wrap final-inner">
+          <h2>Arsanızın sınırları hazır, videosu birkaç dakika uzaklıkta.</h2>
+          <a class="btn btn-primary" href="siparis/">Sipariş ver</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div>
+          <a class="logo" href="./">
+            <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#2c4339" /><path d="M10 25 17 11l14 5 -2 13 -12 3z" fill="#f4c430" fill-opacity=".25" stroke="#f4c430" stroke-width="2.4" stroke-linejoin="round" /></svg>
+            Virtual Land
+          </a>
+          <p>Arsalar için harita tabanlı tanıtım videoları.</p>
+        </div>
+        <div>
+          <h4>Site</h4>
+          <ul>
+            <li><a href="siparis/">Sipariş ver</a></li>
+            <li><a href="harita/">3B harita</a></li>
+            <li><a href="#paketler">Paketler</a></li>
+            <li><a href="kvkk/">KVKK aydınlatma metni</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>İletişim</h4>
+          <ul id="contactList">
+            <li data-wa-item hidden><a data-wa href="#">WhatsApp</a></li>
+            <li data-mail-item hidden><a data-mail href="#"></a></li>
+            <li><a href="siparis/">Sipariş formu</a></li>
+          </ul>
+        </div>
+        <div class="fine">
+          <span>© <span data-year></span> Virtual Land</span>
+          <span>Uydu görüntüleri: Esri, Maxar, Earthstar Geographics. Harita verisi: © OpenStreetMap katkıcıları.</span>
+        </div>
+      </div>
+    </footer>
+
+    <a class="wa-float" data-wa href="#" aria-label="WhatsApp ile yazın" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.5-.3z" /></svg>
+    </a>
+
+  </body>
+</html>

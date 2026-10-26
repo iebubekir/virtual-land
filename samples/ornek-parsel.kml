@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Örnek Parsel (temsili)</name>
+    <Placemark>
+      <name>101/7</name>
+      <description><![CDATA[
+        <table>
+          <tr><td>İl</td><td>Bursa</td></tr>
+          <tr><td>İlçe</td><td>Mudanya</td></tr>
+          <tr><td>Mahalle</td><td>Örnek</td></tr>
+          <tr><td>Ada</td><td>101</td></tr>
+          <tr><td>Parsel</td><td>7</td></tr>
+          <tr><td>Alan</td><td>2.565,40</td></tr>
+          <tr><td>Nitelik</td><td>Zeytinlik</td></tr>
+          <tr><td>Mevkii</td><td>Bağlar</td></tr>
+          <tr><td>Pafta</td><td>H21-C-14</td></tr>
+        </table>
+        <p>Bu dosya temsilidir, gerçek bir tapu kaydı değildir.</p>
+      ]]></description>
+      <ExtendedData>
+        <Data name="Il"><value>Bursa</value></Data>
+        <Data name="Ilce"><value>Mudanya</value></Data>
+        <Data name="Mahalle"><value>Örnek</value></Data>
+        <Data name="Ada"><value>101</value></Data>
+        <Data name="ParselNo"><value>7</value></Data>
+        <Data name="Alan"><value>2.565,40</value></Data>
+        <Data name="Nitelik"><value>Zeytinlik</value></Data>
+        <Data name="Mevkii"><value>Bağlar</value></Data>
+        <Data name="Pafta"><value>H21-C-14</value></Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              28.884705,40.371820,0 28.885330,40.371784,0 28.885365,40.372198,0 28.884941,40.372270,0 28.884682,40.372108,0 28.884705,40.371820,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>
