@@ -3,6 +3,7 @@ import { bufferBbox, distance, metresPerDegree, openRing, polygonArea, ringCentr
 import { fetchOverpass, osmToScene } from '../lib/osm.js';
 import { detectTrees, styleFromColor } from '../lib/canopy.js';
 import { loadImageryMosaic } from './imageryTiles.js';
+import { TreeBatch } from './treeModel.js';
 
 /* ------------------------------------------------------------------ colours */
 
@@ -225,11 +226,13 @@ export class Surroundings {
 
   set visible(v) {
     this.collection.show = v;
+    this.api.kick?.();
   }
 
   clear() {
     this.collection.removeAll();
     this.currentKey = null;
+    this.api.kick?.();
   }
 
   /** Builds buildings + trees around a parcel. Resolves to counts. */
@@ -277,12 +280,13 @@ export class Surroundings {
     if (signal.aborted) throw new DOMException('aborted', 'AbortError');
 
     const bCenters = scene.buildings.map((b) => ringCentroid(b.ring));
-    const heights = await this.api.groundHeights([...bCenters, ...scene.trees.map((t) => t.pos)]);
+    const heights = await this.api.groundHeights([...bCenters, ...scene.trees.map((t) => t.pos), parcel.centroid]);
     if (signal.aborted) throw new DOMException('aborted', 'AbortError');
 
     this.collection.removeAll();
     this.drawBuildings(scene.buildings, heights.slice(0, scene.buildings.length));
-    this.drawTrees(scene.trees, heights.slice(scene.buildings.length));
+    this.drawTrees(scene.trees, heights.slice(scene.buildings.length, -1), parcel.centroid, heights[heights.length - 1] || 0);
+    this.api.kick?.(4000);
     this.currentKey = key;
     this.lastStats = { buildings: scene.buildings.length, trees: scene.trees.length };
     return this.lastStats;
@@ -379,43 +383,38 @@ export class Surroundings {
     add(glass, true);
   }
 
-  drawTrees(trees, heights) {
-    const trunks = [];
-    const crowns = [];
-    const vf = Cesium.PerInstanceColorAppearance.VERTEX_FORMAT;
-    const color = (c) => ({ color: Cesium.ColorGeometryInstanceAttribute.fromColor(c) });
+  /**
+   * Draws all trees as one GPU-instanced glTF model, in a local east-north-up frame around
+   * the parcel. A few dozen draw calls in total, however many trees there are.
+   */
+  drawTrees(trees, heights, center, h0) {
+    if (!trees.length) return;
+    const [mLon, mLat] = metresPerDegree(center[1]);
+    const R = 6371008.8;
+    const batch = new TreeBatch();
+    const rgb = (c) => [c.red, c.green, c.blue];
+    const trunkRgb = rgb(TRUNK);
+    const oliveTrunkRgb = rgb(TRUNK_OLIVE);
 
     trees.forEach((t, i) => {
-      const g = heights[i] || 0;
-      const [lon, lat] = t.pos;
-      const rnd = seededRandom(hashSeed(`${lon.toFixed(7)}${lat.toFixed(7)}`));
-      const enu = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(lon, lat, g));
-      const at = (x, y, z) => Cesium.Matrix4.multiplyByTranslation(enu, new Cesium.Cartesian3(x, y, z), new Cesium.Matrix4());
-      const near = t.dist < 320;
-      const visibleTrunk = t.dist < 900;
-      const fine = near ? { stackPartitions: 8, slicePartitions: 10 } : { stackPartitions: 6, slicePartitions: 8 };
-      const lobe = (rx, ry, rz, x, y, z, variation) =>
-        crowns.push(
-          new Cesium.GeometryInstance({
-            geometry: new Cesium.EllipsoidGeometry({ radii: new Cesium.Cartesian3(rx, ry, rz), ...fine, vertexFormat: vf }),
-            modelMatrix: at(x, y, z),
-            attributes: color(crownColor(t, variation)),
-          }),
-        );
-      const trunk = (len, r, c = TRUNK) => {
-        if (!visibleTrunk) return;
-        trunks.push(
-          new Cesium.GeometryInstance({
-            geometry: new Cesium.CylinderGeometry({ length: len + 0.5, topRadius: r * 0.7, bottomRadius: r, slices: near ? 7 : 5, vertexFormat: vf }),
-            modelMatrix: at(0, 0, (len + 0.5) / 2 - 0.5),
-            attributes: color(c),
-          }),
-        );
+      const e = (t.pos[0] - center[0]) * mLon;
+      const n = (t.pos[1] - center[1]) * mLat;
+      // Ground relative to the frame origin, corrected for Earth curvature.
+      const up = (heights[i] || 0) - h0 - (e * e + n * n) / (2 * R);
+      const rnd = seededRandom(hashSeed(`${t.pos[0].toFixed(7)}${t.pos[1].toFixed(7)}`));
+      const near = t.dist < 350;
+      const showTrunk = t.dist < 800;
+      const yaw = rnd() * Math.PI * 2;
+      const sphere = near ? 'sphere' : 'sphereFar';
+      const lobe = (rx, ry, rz, x, y, z, variation = 0) =>
+        batch.add(sphere, rgb(crownColor(t, variation)), [e + x, n + y, up + z], yaw, [rx, ry, rz]);
+      const trunk = (len, r, color = trunkRgb) => {
+        if (showTrunk) batch.add('trunk', color, [e, n, up - 0.5], yaw, [r, r, len + 0.5]);
       };
+      const coneAt = (r, len, z, variation) => batch.add('cone', rgb(crownColor(t, variation)), [e, n, up + z], yaw, [r, r, len]);
       const c = t.crown;
       const h = t.height;
-      const ang = rnd() * Math.PI * 2;
-      const side = (k) => [Math.cos(ang + k) * c * 0.48, Math.sin(ang + k) * c * 0.48];
+      const side = (k) => [Math.cos(yaw + k) * c * 0.48, Math.sin(yaw + k) * c * 0.48];
 
       switch (t.style) {
         case 'conifer': {
@@ -423,26 +422,17 @@ export class Surroundings {
           const tiers = near ? 3 : 2;
           for (let k = 0; k < tiers; k++) {
             const frac = k / tiers;
-            const len = h * (0.55 - frac * 0.12);
-            const r = c * 1.25 * (1 - frac * 0.32);
-            crowns.push(
-              new Cesium.GeometryInstance({
-                geometry: new Cesium.CylinderGeometry({ length: len, topRadius: 0, bottomRadius: r, slices: near ? 9 : 7, vertexFormat: vf }),
-                modelMatrix: at(0, 0, h * (0.25 + frac * 0.28) + len / 2),
-                attributes: color(crownColor(t, -0.06 + frac * 0.08)),
-              }),
-            );
+            coneAt(c * 1.25 * (1 - frac * 0.32), h * (0.55 - frac * 0.12), h * (0.25 + frac * 0.28), -0.06 + frac * 0.08);
           }
           break;
         }
         case 'cypress':
           trunk(h * 0.15, 0.18);
-          lobe(c * 1.1, c * 1.1, h * 0.48, 0, 0, h * 0.52, 0);
+          lobe(c * 1.1, c * 1.1, h * 0.48, 0, 0, h * 0.52);
           break;
         case 'pine': {
-          // Umbrella (stone) pine: tall bare trunk, wide flat crown.
           trunk(h * 0.78, Math.max(0.18, h * 0.024));
-          lobe(c * 1.05, c, c * 0.42, 0, 0, h - c * 0.42, 0);
+          lobe(c * 1.05, c, c * 0.42, 0, 0, h - c * 0.42);
           if (near) {
             const [x1, y1] = side(0);
             const [x2, y2] = side(2.4);
@@ -453,8 +443,8 @@ export class Surroundings {
         }
         case 'olive':
         case 'fruit': {
-          trunk(h * 0.42, Math.max(0.16, h * 0.05), t.style === 'olive' ? TRUNK_OLIVE : TRUNK);
-          lobe(c, c * 0.95, c * 0.62, 0, 0, h - c * 0.62, 0);
+          trunk(h * 0.42, Math.max(0.16, h * 0.05), t.style === 'olive' ? oliveTrunkRgb : trunkRgb);
+          lobe(c, c * 0.95, c * 0.62, 0, 0, h - c * 0.62);
           if (near) {
             const [x1, y1] = side(0.3);
             const [x2, y2] = side(3.4);
@@ -464,9 +454,8 @@ export class Surroundings {
           break;
         }
         default: {
-          // Broadleaf: main crown + side lobes for an irregular silhouette.
           trunk(Math.max(1.2, h - c * 1.6), Math.max(0.14, h * 0.028));
-          lobe(c, c * 0.95, c * 0.82, 0, 0, h - c * 0.82, 0);
+          lobe(c, c * 0.95, c * 0.82, 0, 0, h - c * 0.82);
           if (near) {
             const [x1, y1] = side(0);
             const [x2, y2] = side(2.1);
@@ -479,17 +468,30 @@ export class Surroundings {
       }
     });
 
-    for (const instances of [trunks, crowns]) {
-      if (!instances.length) continue;
-      this.collection.add(
-        new Cesium.Primitive({
-          geometryInstances: instances,
-          appearance: new Cesium.PerInstanceColorAppearance({ closed: true }),
-          shadows: Cesium.ShadowMode.ENABLED,
-          releaseGeometryInstances: true,
-          asynchronous: true,
-        }),
-      );
-    }
+    const url = URL.createObjectURL(new Blob([batch.toGlb()], { type: 'model/gltf-binary' }));
+    const modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(center[0], center[1], h0));
+    const collection = this.collection;
+    const api = this.api;
+    Cesium.Model.fromGltfAsync({
+      url,
+      modelMatrix,
+      upAxis: Cesium.Axis.Z,
+      forwardAxis: Cesium.Axis.X,
+      shadows: Cesium.ShadowMode.ENABLED,
+      // Instances are spread over a wide area; never cull the whole model by screen size.
+      minimumPixelSize: 0,
+    })
+      .then((model) => {
+        if (collection.isDestroyed()) return;
+        collection.add(model);
+        model.readyEvent.addEventListener(() => {
+          URL.revokeObjectURL(url);
+          api.kick?.(1500);
+        });
+      })
+      .catch((err) => {
+        URL.revokeObjectURL(url);
+        console.warn('Tree model failed', err);
+      });
   }
 }

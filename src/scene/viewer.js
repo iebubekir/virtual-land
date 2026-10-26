@@ -46,7 +46,8 @@ const BASEMAPS = {
   ],
 };
 
-const QUALITY = { high: 1, normal: 0.85, low: 0.6 };
+// [resolution scale, max device pixel ratio honoured, MSAA samples]
+const QUALITY = { high: [1, 2, 4], normal: [1, 1.25, 1], low: [0.75, 1, 1] };
 
 /**
  * Creates the Cesium viewer with free imagery and no Cesium ion dependency.
@@ -83,10 +84,16 @@ export function createViewer(container) {
   noon.setUTCHours(9, 0, 0, 0);
   viewer.clock.currentTime = Cesium.JulianDate.fromDate(noon);
   viewer.clock.shouldAnimate = false;
-  viewer.shadowMap.softShadows = true;
+  // Shadows are the most expensive part of the scene: hard shadows, near the camera only.
+  viewer.shadowMap.softShadows = false;
   viewer.shadowMap.size = 2048;
-  viewer.shadowMap.maximumDistance = 1500;
-  viewer.shadowMap.darkness = 0.55;
+  viewer.shadowMap.maximumDistance = 700;
+  viewer.shadowMap.darkness = 0.5;
+
+  // Only draw a new frame when something changed (camera move, tiles loading, data added),
+  // instead of 60 frames per second while the user just looks at the map.
+  scene.requestRenderMode = true;
+  scene.maximumRenderTimeChange = Infinity;
 
   // OSM / Esri attribution is shown through the credit display.
   viewer.creditDisplay.addStaticCredit(
@@ -109,15 +116,40 @@ export function createViewer(container) {
       const layers = viewer.imageryLayers;
       layers.removeAll();
       (BASEMAPS[name] || BASEMAPS.satelliteLabels)().forEach((p) => layers.addImageryProvider(p));
+      api.kick?.();
     },
 
     setShadows(on) {
       viewer.shadows = on;
       viewer.terrainShadows = on ? Cesium.ShadowMode.RECEIVE_ONLY : Cesium.ShadowMode.DISABLED;
+      api.kick();
+    },
+
+    /** Keeps rendering for `ms` (render-on-demand mode), e.g. while new data is appearing. */
+    kick(ms = 1200) {
+      const until = performance.now() + ms;
+      api._kickUntil = Math.max(api._kickUntil || 0, until);
+      if (api._kicking) return;
+      api._kicking = true;
+      const hardStop = performance.now() + 30000;
+      const step = () => {
+        if (viewer.isDestroyed()) return;
+        scene.requestRender();
+        // Keep going while entity geometry (boundary, fence) is still being built in workers.
+        const busy = !viewer.dataSourceDisplay.ready;
+        const now = performance.now();
+        if ((now < api._kickUntil || busy) && now < hardStop) requestAnimationFrame(step);
+        else api._kicking = false;
+      };
+      requestAnimationFrame(step);
     },
 
     setQuality(q) {
-      viewer.resolutionScale = (QUALITY[q] || 0.85) * Math.min(window.devicePixelRatio || 1, 2);
+      const [scale, maxDpr, msaa] = QUALITY[q] || QUALITY.normal;
+      // On 4K / Retina screens rendering at full device resolution multiplies the work 4x.
+      viewer.resolutionScale = scale * Math.min(window.devicePixelRatio || 1, maxDpr);
+      viewer.useBrowserRecommendedResolution = false;
+      scene.msaaSamples = msaa;
       scene.globe.maximumScreenSpaceError = q === 'low' ? 3 : q === 'high' ? 1.5 : 2;
       if (api.photoTileset) api.photoTileset.maximumScreenSpaceError = q === 'low' ? 24 : q === 'high' ? 8 : 16;
     },

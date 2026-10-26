@@ -84,9 +84,7 @@ export class ParcelLayer {
       add({
         polygon: {
           hierarchy: new Cesium.PolygonHierarchy(toCart(outer), holes.map((h) => new Cesium.PolygonHierarchy(toCart(h)))),
-          material: new Cesium.ColorMaterialProperty(
-            new Cesium.CallbackProperty(() => color.withAlpha(isSelected() ? 0.34 : 0.22), false),
-          ),
+          material: new Cesium.ColorMaterialProperty(color.withAlpha(isSelected() ? 0.34 : 0.22)),
           classificationType: Cesium.ClassificationType.BOTH,
         },
       });
@@ -95,7 +93,7 @@ export class ParcelLayer {
           polyline: {
             positions: Cesium.Cartesian3.fromDegreesArray([...r, r[0]].flat()),
             clampToGround: true,
-            width: new Cesium.CallbackProperty(() => (isSelected() ? 5 : 3.5), false),
+            width: isSelected() ? 5 : 3.5,
             material: color,
             classificationType: Cesium.ClassificationType.BOTH,
           },
@@ -161,10 +159,11 @@ export class ParcelLayer {
       },
     });
 
-    const item = { parcel, entities, fence: [], edgeLabels: [] };
+    const item = { parcel, entities, fence: [], edgeLabels: [], color };
     this.items.set(parcel.id, item);
     this.buildEdgeLabels(item, null);
     this.refreshHeights(parcel.id);
+    this.api.kick();
     return item;
   }
 
@@ -247,6 +246,7 @@ export class ParcelLayer {
     // Edge midpoints: average the two corner heights
     const midH = corners.map((r, ri) => r.map((_, i) => (cornerH[ri][i] + cornerH[ri][(i + 1) % r.length]) / 2));
     this.buildEdgeLabels(item, this.options.fence ? midH : null);
+    this.api.kick();
   }
 
   refreshAllHeights() {
@@ -258,6 +258,7 @@ export class ParcelLayer {
     if (!item) return;
     [...item.entities, ...item.fence, ...item.edgeLabels].forEach((e) => this.ds.entities.remove(e));
     this.items.delete(id);
+    this.api.kick();
     if (this.selectedId === id) this.selectedId = null;
   }
 
@@ -265,15 +266,24 @@ export class ParcelLayer {
     for (const id of [...this.items.keys()]) this.remove(id);
   }
 
+  /** Highlights the selected parcel. Plain values (not per-frame callbacks) keep rendering cheap. */
   select(id) {
     this.selectedId = id;
-    this.viewer.scene.requestRender();
+    for (const [pid, item] of this.items) {
+      const on = pid === id;
+      for (const e of item.entities) {
+        if (e.polygon) e.polygon.material = new Cesium.ColorMaterialProperty(item.color.withAlpha(on ? 0.34 : 0.22));
+        if (e.polyline) e.polyline.width = on ? 5 : 3.5;
+      }
+    }
+    this.api.kick();
   }
 
   setOptions(opts) {
     const fenceChanged = 'fence' in opts && opts.fence !== this.options.fence;
     Object.assign(this.options, opts);
     for (const item of this.items.values()) item.edgeLabels.forEach((e) => (e.show = this.options.edgeLabels));
+    this.api.kick();
     if (fenceChanged) this.refreshAllHeights();
   }
 
