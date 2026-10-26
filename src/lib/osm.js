@@ -157,7 +157,7 @@ export function elementPolygons(el) {
 }
 
 /** Uniform grid index of building footprints for fast "is this point inside a building" tests. */
-class FootprintIndex {
+export class FootprintIndex {
   constructor(buildings, cell = 0.0005) {
     this.cell = cell;
     this.grid = new Map();
@@ -187,7 +187,9 @@ export function treeStyle(tags = {}, area = null) {
   const leaf = tags.leaf_type || area?.leaf_type;
   const genus = (tags.genus || tags.species || tags.taxon || '').toLowerCase();
   const crop = (area?.trees || area?.crop || '').toLowerCase();
-  if (leaf === 'needleleaved' || /pinus|picea|abies|cedrus|cupressus|çam|cam|pine/.test(genus)) return 'conifer';
+  if (/pinea|fıstık|fistik|umbrella/.test(genus)) return 'pine';
+  if (/cupressus|servi|selvi|cypress/.test(genus)) return 'cypress';
+  if (leaf === 'needleleaved' || /pinus|picea|abies|cedrus|çam|cam|pine/.test(genus)) return 'conifer';
   if (/olea|olive|zeytin/.test(genus + crop)) return 'olive';
   if (area?.kind === 'orchard') return 'fruit';
   if (leaf === 'mixed' || area?.leaf_type === 'mixed') return 'mixed';
@@ -236,6 +238,8 @@ function sampleLine(coords, spacing) {
 const TREE_SIZE = {
   // [min height, max height, crown radius factor (of height)]
   broad: [6, 12, 0.32],
+  pine: [8, 14, 0.36],
+  cypress: [9, 16, 0.12],
   mixed: [7, 14, 0.3],
   conifer: [9, 18, 0.2],
   olive: [3.5, 6, 0.45],
@@ -259,7 +263,7 @@ function makeTree(pos, style, rnd, tags = {}) {
  * @param options.clip [w, s, e, n] — area to generate trees in
  * @param options.exclude polygons ([[outer, ...holes]]) where nothing should be generated (the parcel)
  */
-export function osmToScene(data, { center, clip, maxBuildings = 2500, maxTrees = 7000, exclude = [] } = {}) {
+export function osmToScene(data, { center, clip, maxBuildings = 2500, maxTrees = 7000, exclude = [], scatterAreas = true } = {}) {
   const buildings = [];
   const areas = [];
   const singles = [];
@@ -304,7 +308,7 @@ export function osmToScene(data, { center, clip, maxBuildings = 2500, maxTrees =
     for (const p of sampleLine(geomToRing(el.geometry), 7)) if (!index.contains(p)) trees.push(makeTree(p, style, rnd, {}));
   }
   const fullClip = clip || [-180, -90, 180, 90];
-  for (const area of areas) {
+  for (const area of scatterAreas ? areas : []) {
     const rnd = seededRandom(hashSeed(`${area.id}`));
     const style = treeStyle({}, { ...area.tags, kind: area.kind });
     const spacing = SPACING[area.kind];
@@ -317,7 +321,7 @@ export function osmToScene(data, { center, clip, maxBuildings = 2500, maxTrees =
   for (const t of trees) t.dist = distTo(t.pos);
   trees.sort((a, b) => a.dist - b.dist);
 
-  return { buildings: keptBuildings, trees: trees.slice(0, maxTrees), stats: { buildings: buildings.length, trees: trees.length, areas: areas.length } };
+  return { buildings: keptBuildings, trees: trees.slice(0, maxTrees), index, stats: { buildings: buildings.length, trees: trees.length, areas: areas.length } };
 }
 
 /** Fetches Overpass data, trying mirrors in turn. */

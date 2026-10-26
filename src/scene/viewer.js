@@ -3,11 +3,30 @@ import { settings } from '../settings.js';
 
 const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services';
 
+export const ESRI_IMAGERY_TILE = (z, y, x) => `${ESRI}/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+
 function esri(service, maximumLevel = 19) {
   return new Cesium.UrlTemplateImageryProvider({
     url: `${ESRI}/${service}/MapServer/tile/{z}/{y}/{x}`,
     maximumLevel,
     credit: new Cesium.Credit('Esri, Maxar, Earthstar Geographics', false),
+    // Where Esri has no imagery at a zoom level it serves a grey "Map data not yet available"
+    // tile. Compare against a tile that is always missing (top-left at max zoom, over the
+    // Arctic) and discard matches, so Cesium keeps showing the sharpest real parent tile.
+    tileDiscardPolicy:
+      service === 'World_Imagery'
+        ? new Cesium.DiscardMissingTileImagePolicy({
+            missingImageUrl: `${ESRI}/${service}/MapServer/tile/${maximumLevel}/0/0`,
+            pixelsToCheck: [
+              new Cesium.Cartesian2(0, 0),
+              new Cesium.Cartesian2(200, 20),
+              new Cesium.Cartesian2(20, 200),
+              new Cesium.Cartesian2(80, 110),
+              new Cesium.Cartesian2(160, 130),
+            ],
+            disableCheckIfAllPixelsAreTransparent: true,
+          })
+        : undefined,
   });
 }
 

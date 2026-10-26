@@ -117,7 +117,7 @@ async function loadSurroundings(parcel) {
   }
   status(t('loadingSurroundings'), { loading: true });
   try {
-    const { buildings, trees } = await surroundings.load(parcel, Number(settings.radius));
+    const { buildings, trees } = await surroundings.load(parcel, Number(settings.radius), { quality: settings.quality });
     if (selectedId !== parcel.id) return;
     if (!buildings && !trees) status(t('surroundingsNone'), { autoHide: 6000 });
     else status(t('surroundingsDone', { b: nf(buildings, 0), t: nf(trees, 0) }), { autoHide: 5000 });
@@ -446,8 +446,10 @@ function bindUI() {
     const keysChanged = googleKey !== settings.googleKey || ionToken !== settings.ionToken;
     settings.googleKey = googleKey;
     settings.ionToken = ionToken;
+    const qualityChanged = settings.quality !== form.quality.value;
     settings.quality = form.quality.value;
     sceneApi.setQuality(settings.quality);
+    if (qualityChanged && !keysChanged && parcels.get(selectedId)) loadSurroundings(parcels.get(selectedId));
     if (form.lang.value !== getLang()) changeLang(form.lang.value);
     if (keysChanged) {
       sceneApi.disposePhoto();

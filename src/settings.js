@@ -1,7 +1,7 @@
 // User settings persisted in localStorage. Build-time env vars give optional defaults
 // (VITE_GOOGLE_MAPS_API_KEY / VITE_CESIUM_ION_TOKEN), so a deployment can ship keys.
 
-const KEY = 'vl.settings.v1';
+const KEY = 'vl.settings.v2';
 const isMobile = typeof matchMedia !== 'undefined' && matchMedia('(max-width: 760px), (pointer: coarse)').matches;
 
 const DEFAULTS = {
@@ -11,7 +11,7 @@ const DEFAULTS = {
   viewMode: 'auto', // 'auto' | 'osm' | 'photo'
   basemap: 'satelliteLabels',
   surroundings: true,
-  radius: 300,
+  radius: isMobile ? 300 : 600,
   edgeLabels: true,
   fence: true,
   shadows: !isMobile,
