@@ -928,6 +928,87 @@ dialog::backdrop {
   }
 }
 
+.mini-select {
+  margin-top: 6px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0 8px;
+  font-size: 12.5px;
+}
+
+.row.tight {
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.row.between {
+  justify-content: space-between;
+  flex-wrap: nowrap;
+}
+
+.row.full {
+  width: 100%;
+}
+
+.steps li.col {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.steps li.col::before {
+  position: absolute;
+}
+
+.steps li.col {
+  position: relative;
+  padding-inline-start: 46px;
+}
+
+.steps li.col::before {
+  inset-inline-start: 12px;
+  top: 12px;
+}
+
+.tile-grid {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+  max-width: 220px;
+}
+
+.tile {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.25) center / cover no-repeat;
+  color: var(--muted);
+  font-size: 11px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  position: relative;
+}
+
+.tile:hover {
+  border-color: var(--accent);
+}
+
+.tile.done {
+  border: 2px solid var(--ok);
+  color: transparent;
+}
+
+.tile.center::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 /* ---------- mobile ---------- */
 @media (max-width: 760px) {
   .topbar {

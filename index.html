@@ -98,16 +98,31 @@
         <h3 data-i18n="presentTitle"></h3>
         <ol class="steps">
           <li>
-            <div><b data-i18n="step1"></b><small data-i18n="step1Help"></small></div>
+            <div>
+              <b data-i18n="step1"></b><small data-i18n="step1Help"></small>
+              <select id="gridSize" class="mini-select">
+                <option value="3" data-i18n="grid3"></option>
+                <option value="2" data-i18n="grid2"></option>
+                <option value="1" data-i18n="grid1"></option>
+              </select>
+            </div>
             <button class="btn small" id="captureBtn"><span data-i18n="captureBtn"></span></button>
           </li>
           <li>
-            <div><b data-i18n="step2"></b><small data-i18n="step2Help"></small></div>
-            <button class="btn small ghost" id="copyPromptBtn"><span data-i18n="copyPrompt"></span></button>
+            <div>
+              <b data-i18n="step2"></b><small data-i18n="step2Help"></small>
+              <span class="row tight">
+                <a class="text-btn" href="https://upscayl.org/" target="_blank" rel="noopener">Upscayl</a>
+                <button class="text-btn" id="copyPromptBtn" data-i18n="copyPrompt"></button>
+              </span>
+            </div>
           </li>
-          <li>
-            <div><b data-i18n="step3"></b><small data-i18n="step3Help"></small></div>
-            <button class="btn small" id="overlayBtn"><span data-i18n="uploadEnhanced"></span></button>
+          <li class="col">
+            <div class="row between full">
+              <div><b data-i18n="step3"></b><small data-i18n="step3Help"></small></div>
+              <button class="btn small" id="overlayBtn"><span data-i18n="uploadAll"></span></button>
+            </div>
+            <div class="tile-grid" id="tileGrid"></div>
           </li>
         </ol>
         <div class="overlay-row" id="overlayRow" hidden>
@@ -185,7 +200,8 @@
       <div class="rec-badge"><span class="rec-dot"></span><span id="recText"></span></div>
     </div>
 
-    <input type="file" id="overlayInput" accept="image/png,image/jpeg,image/webp" hidden />
+    <input type="file" id="overlayInput" accept="image/png,image/jpeg,image/webp" multiple hidden />
+    <input type="file" id="tileInput" accept="image/png,image/jpeg,image/webp" hidden />
 
     <div class="dropzone" id="dropzone" hidden>
       <div>

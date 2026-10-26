@@ -2,10 +2,8 @@
 // draping an enhanced image back onto the exact same ground area, and recording a cinematic
 // fly-around video of the parcel.
 import * as Cesium from 'cesium';
-import { metresPerDegree } from '../lib/geo.js';
+import { TILE_PX } from '../lib/mosaic.js';
 
-/** ChatGPT / DALL·E portrait size; the capture keeps this aspect so the result drapes back 1:1. */
-export const CAPTURE_SIZE = { width: 1024, height: 1536 };
 
 /** Stable key for a parcel across reloads (ids are regenerated on load). */
 export const parcelKey = (p) => `${p.label}|${p.polygons[0][0][0].map((v) => v.toFixed(6)).join(',')}`;
@@ -29,11 +27,11 @@ async function waitForTiles(viewer, timeout = 25000) {
 /* ------------------------------------------------------------------ top-down capture */
 
 /**
- * Captures a clean, north-up, orthographic top-down image of the area around the parcel
- * (satellite only — no labels, boundary or 3D objects) at CAPTURE_SIZE.
- * @returns {Promise<{blob: Blob, rect: number[]}>} rect = [west, south, east, north] in degrees
+ * Captures clean, north-up, orthographic top-down tiles (satellite only — no labels,
+ * boundary or 3D objects), one per entry of `tiles` ({rect, sizeM, center}), each TILE_PX².
+ * @returns {Promise<Blob[]>}
  */
-export async function captureTopDown({ sceneApi, layer, surroundings, overlays, parcel }) {
+export async function captureTiles({ sceneApi, layer, surroundings, overlays, parcel, tiles, onProgress }) {
   const { viewer } = sceneApi;
   const { scene } = viewer;
   const camera = scene.camera;
@@ -52,7 +50,6 @@ export async function captureTopDown({ sceneApi, layer, surroundings, overlays, 
     globe: scene.globe.show,
   };
   try {
-    // Only the satellite imagery: hide labels, overlays, boundary and 3D objects.
     surroundings.visible = false;
     layer.ds.show = false;
     if (sceneApi.photoTileset) sceneApi.photoTileset.show = false;
@@ -65,44 +62,40 @@ export async function captureTopDown({ sceneApi, layer, surroundings, overlays, 
     }
     overlays?.hideAll();
 
-    const radius = layer.radiusOf(parcel);
-    const heightM = Math.max(radius * 2 * 3.4, 160); // ground metres covered vertically
-    const widthM = (heightM * CAPTURE_SIZE.width) / CAPTURE_SIZE.height;
-
-    // Render larger than the screen so the crop has enough pixels.
+    // Render larger than the screen so each crop has enough pixels.
     const canvas = scene.canvas;
-    viewer.resolutionScale = Math.max(saved.resolutionScale, (CAPTURE_SIZE.height * 1.15) / (canvas.clientHeight * (window.devicePixelRatio || 1)));
+    const dpr = window.devicePixelRatio || 1;
+    viewer.resolutionScale = Math.max(saved.resolutionScale, (TILE_PX * 1.12) / (Math.min(canvas.clientWidth, canvas.clientHeight) * dpr));
     viewer.resize();
     await nextFrame();
+    const cropPx = Math.min(canvas.width, canvas.height) * 0.94;
 
-    const cropH = Math.min(canvas.height * 0.94, canvas.width * 0.94 * (CAPTURE_SIZE.height / CAPTURE_SIZE.width));
-    const cropW = (cropH * CAPTURE_SIZE.width) / CAPTURE_SIZE.height;
-    const metresPerPixel = heightM / cropH;
-
-    const frustum = new Cesium.OrthographicFrustum();
-    frustum.width = metresPerPixel * canvas.width;
-    frustum.aspectRatio = canvas.width / canvas.height;
-    frustum.near = 1;
-    frustum.far = 20000;
-    camera.frustum = frustum;
-    const [lon, lat] = parcel.centroid;
-    camera.setView({
-      destination: Cesium.Cartesian3.fromDegrees(lon, lat, (parcel.groundHeight || 0) + 4000),
-      orientation: { heading: 0, pitch: -Cesium.Math.PI_OVER_TWO, roll: 0 },
-    });
-    await waitForTiles(viewer);
-
-    // Draw straight after rendering, while the WebGL drawing buffer is still valid.
-    scene.render();
-    const out = document.createElement('canvas');
-    out.width = CAPTURE_SIZE.width;
-    out.height = CAPTURE_SIZE.height;
-    out.getContext('2d').drawImage(canvas, (canvas.width - cropW) / 2, (canvas.height - cropH) / 2, cropW, cropH, 0, 0, out.width, out.height);
-    const blob = await new Promise((r) => out.toBlob(r, 'image/png'));
-
-    const [mLon, mLat] = metresPerDegree(lat);
-    const rect = [lon - widthM / 2 / mLon, lat - heightM / 2 / mLat, lon + widthM / 2 / mLon, lat + heightM / 2 / mLat];
-    return { blob, rect };
+    const blobs = [];
+    for (let i = 0; i < tiles.length; i++) {
+      const tile = tiles[i];
+      onProgress?.(i / tiles.length);
+      const metresPerPixel = tile.sizeM / cropPx;
+      const frustum = new Cesium.OrthographicFrustum();
+      frustum.width = metresPerPixel * canvas.width;
+      frustum.aspectRatio = canvas.width / canvas.height;
+      frustum.near = 1;
+      frustum.far = 20000;
+      camera.frustum = frustum;
+      camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(tile.center[0], tile.center[1], (parcel.groundHeight || 0) + 4000),
+        orientation: { heading: 0, pitch: -Cesium.Math.PI_OVER_TWO, roll: 0 },
+      });
+      await waitForTiles(viewer);
+      // Draw straight after rendering, while the WebGL drawing buffer is still valid.
+      scene.render();
+      const out = document.createElement('canvas');
+      out.width = TILE_PX;
+      out.height = TILE_PX;
+      out.getContext('2d').drawImage(canvas, (canvas.width - cropPx) / 2, (canvas.height - cropPx) / 2, cropPx, cropPx, 0, 0, TILE_PX, TILE_PX);
+      blobs.push(await new Promise((r) => out.toBlob(r, 'image/png')));
+    }
+    onProgress?.(1);
+    return blobs;
   } finally {
     camera.frustum = saved.frustum;
     camera.setView({ destination: saved.position, orientation: { direction: saved.direction, up: saved.up } });
@@ -116,6 +109,50 @@ export async function captureTopDown({ sceneApi, layer, surroundings, overlays, 
     overlays?.showAll();
     sceneApi.kick(1500);
   }
+}
+
+/** Packs captured tiles + layout + instructions into one ZIP. */
+export async function packTiles(JSZip, layout, blobs, readme) {
+  const zip = new JSZip();
+  layout.tiles.forEach((t, i) => zip.file(`${t.name}.png`, blobs[i]));
+  zip.file('OKU-BENI.txt', readme);
+  return zip.generateAsync({ type: 'blob' });
+}
+
+/**
+ * Fades the image edges to transparent so overlapping tiles blend into each other and
+ * the outer edge blends into the satellite map. Returns a PNG blob.
+ */
+export async function featherImage(file, fraction, maxSize = 2048) {
+  const bmp = await createImageBitmap(file);
+  // Upscalers output 4096 px+; 9 such textures would need ~600 MB of GPU memory.
+  const scale = Math.min(1, maxSize / Math.max(bmp.width, bmp.height));
+  const w = Math.round(bmp.width * scale);
+  const h = Math.round(bmp.height * scale);
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const g = c.getContext('2d');
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(bmp, 0, 0, w, h);
+  bmp.close?.();
+  const fx = Math.max(1, w * fraction);
+  const fy = Math.max(1, h * fraction);
+  g.globalCompositeOperation = 'destination-in';
+  // Multiply alpha by a horizontal and a vertical ramp.
+  const ramp = (x0, y0, x1, y1, len, total) => {
+    const grad = g.createLinearGradient(x0, y0, x1, y1);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(len / total, 'rgba(0,0,0,1)');
+    grad.addColorStop(1 - len / total, 'rgba(0,0,0,1)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    return grad;
+  };
+  g.fillStyle = ramp(0, 0, w, 0, fx, w);
+  g.fillRect(0, 0, w, h);
+  g.fillStyle = ramp(0, 0, 0, h, fy, h);
+  g.fillRect(0, 0, w, h);
+  return new Promise((r) => c.toBlob(r, 'image/png'));
 }
 
 /* ------------------------------------------------------------------ overlays (IndexedDB) */
@@ -139,23 +176,34 @@ async function dbOp(mode, fn) {
   });
 }
 
-/** Enhanced images draped on the globe, one per parcel, persisted in IndexedDB. */
+/**
+ * Enhanced images draped on the globe, persisted in IndexedDB.
+ * Keys are "<parcelKey>#<tileName>", so one parcel can have a whole grid of tiles.
+ */
 export class OverlayManager {
   constructor(sceneApi) {
     this.api = sceneApi;
     this.layers = new Map(); // key -> { layer, url, visible }
   }
 
-  has(key) {
-    return this.layers.has(key);
+  keysOf(prefix) {
+    return [...this.layers.keys()].filter((k) => k.startsWith(`${prefix}#`));
   }
 
-  isVisible(key) {
-    return this.layers.get(key)?.visible ?? false;
+  has(prefix) {
+    return this.keysOf(prefix).length > 0;
+  }
+
+  hasTile(prefix, name) {
+    return this.layers.has(`${prefix}#${name}`);
+  }
+
+  isVisible(prefix) {
+    return this.keysOf(prefix).some((k) => this.layers.get(k).visible);
   }
 
   async add(key, blob, rect, { persist = true } = {}) {
-    this.remove(key, { persist: false });
+    this.remove(key, { persist: false, exact: true });
     const url = URL.createObjectURL(blob);
     const provider = await Cesium.SingleTileImageryProvider.fromUrl(url, {
       rectangle: Cesium.Rectangle.fromDegrees(...rect),
@@ -167,23 +215,34 @@ export class OverlayManager {
     this.api.kick(1500);
   }
 
-  setVisible(key, visible) {
-    const o = this.layers.get(key);
-    if (!o) return;
-    o.visible = visible;
-    o.layer.show = visible;
+  setVisible(prefix, visible) {
+    for (const k of this.keysOf(prefix)) {
+      const o = this.layers.get(k);
+      o.visible = visible;
+      o.layer.show = visible;
+    }
     this.api.kick();
   }
 
-  remove(key, { persist = true } = {}) {
-    const o = this.layers.get(key);
-    if (o) {
-      this.api.viewer.imageryLayers.remove(o.layer, true);
-      URL.revokeObjectURL(o.url);
-      this.layers.delete(key);
-      this.api.kick();
+  /** Removes one tile (exact key) or every tile of a parcel (prefix). */
+  remove(keyOrPrefix, { persist = true, exact = false } = {}) {
+    const keys = exact || keyOrPrefix.includes('#') ? [keyOrPrefix] : this.keysOf(keyOrPrefix);
+    for (const k of keys) {
+      const o = this.layers.get(k);
+      if (o) {
+        this.api.viewer.imageryLayers.remove(o.layer, true);
+        URL.revokeObjectURL(o.url);
+        this.layers.delete(k);
+      }
+      if (persist) dbOp('readwrite', (store) => store.delete(k)).catch(() => {});
     }
-    if (persist) dbOp('readwrite', (store) => store.delete(key)).catch(() => {});
+    if (!exact && !keyOrPrefix.includes('#') && persist) {
+      // Also clear tiles stored but not currently loaded.
+      dbOp('readonly', (store) => store.getAllKeys())
+        .then((all) => all.filter((k) => String(k).startsWith(`${keyOrPrefix}#`)).forEach((k) => dbOp('readwrite', (store) => store.delete(k))))
+        .catch(() => {});
+    }
+    this.api.kick();
   }
 
   hideAll() {
@@ -194,15 +253,17 @@ export class OverlayManager {
     for (const o of this.layers.values()) o.layer.show = o.visible;
   }
 
-  /** Re-adds saved overlays for the given parcel keys. */
-  async restore(keys) {
+  /** Re-adds saved overlays belonging to the given parcel keys. */
+  async restore(prefixes) {
     let records = [];
     try {
       records = await dbOp('readonly', (store) => store.getAll());
     } catch {
       return;
     }
-    for (const r of records || []) if (keys.includes(r.key)) await this.add(r.key, r.blob, r.rect, { persist: false }).catch(() => {});
+    for (const r of records || []) {
+      if (prefixes.some((p) => r.key.startsWith(`${p}#`))) await this.add(r.key, r.blob, r.rect, { persist: false }).catch(() => {});
+    }
   }
 }
 
@@ -408,6 +469,6 @@ export function download(blob, name) {
 /** Prompt to paste into ChatGPT together with the captured image. */
 export const ENHANCE_PROMPT_TR =
   'Bu uydu görüntüsünü fotoğraf kalitesinde, net ve canlı bir drone görüntüsüne dönüştür. ' +
-  'Kompozisyonu, kadrajı ve en-boy oranını (1024x1536) AYNEN koru: yolların, tarla sınırlarının, ' +
+  'Kompozisyonu, kadrajı ve kare en-boy oranını (1024x1024) AYNEN koru: yolların, tarla sınırlarının, ' +
   'binaların ve ağaçların konumunu, şeklini ve boyutunu değiştirme, yeni bina, havuz veya yol ekleme, ' +
   'hiçbir şeyi kaldırma. Sadece netliği, renkleri, ışığı ve dokuları iyileştir. Görüntü tam tepeden (90°) bakan, kuzey yukarıda olsun.';

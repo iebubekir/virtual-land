@@ -8,7 +8,8 @@ import { parseParcelFile, serializeParcel, deserializeParcel } from './lib/parce
 import { formatArea } from './lib/geo.js';
 import { settings, canUsePhoto, effectiveViewMode, IS_MOBILE } from './settings.js';
 import { setLang, t, LANGS, getLang, numberLocale } from './i18n.js';
-import { captureTopDown, OverlayManager, recordVideo, download, parcelKey, ENHANCE_PROMPT_TR, CAPTURE_SIZE } from './scene/presentation.js';
+import { captureTiles, packTiles, featherImage, OverlayManager, recordVideo, download, parcelKey, ENHANCE_PROMPT_TR } from './scene/presentation.js';
+import { mosaicLayout, matchTileName, featherFraction } from './lib/mosaic.js';
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) =>
@@ -27,7 +28,6 @@ const sceneApi = createViewer($('#globe'));
 const layer = new ParcelLayer(sceneApi, { onSelect: (id) => select(id, false) });
 const surroundings = new Surroundings(sceneApi);
 const overlays = new OverlayManager(sceneApi);
-const CAPTURE_KEY = 'vl.capture.';
 layer.setOptions({ edgeLabels: settings.edgeLabels, fence: settings.fence });
 layer.onOrbitChange = (on) => {
   $('#toolOrbit').classList.toggle('on', on);
@@ -284,6 +284,7 @@ function renderDetails() {
   const key = parcelKey(p);
   $('#overlayRow').hidden = !overlays.has(key);
   $('#overlayToggle').checked = overlays.isVisible(key);
+  renderTileGrid();
   $('#gmapsLink').href = `https://www.google.com/maps?q=${p.centroid[1].toFixed(7)},${p.centroid[0].toFixed(7)}&t=k`;
 }
 
@@ -510,22 +511,93 @@ function fileSafe(s) {
   return String(s).replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '') || 'parsel';
 }
 
+const MOSAIC_KEY = 'vl.mosaic.';
+
+function loadMosaic(p) {
+  try {
+    return JSON.parse(localStorage.getItem(MOSAIC_KEY + parcelKey(p)) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function afterOverlayChange(p) {
+  syncSurroundingsVisibility();
+  renderDetails();
+  if (!overlays.isVisible(parcelKey(p))) loadSurroundings(p);
+}
+
+/** Small k×k grid in the panel showing which tiles already have an enhanced image. */
+function renderTileGrid() {
+  const grid = $('#tileGrid');
+  const p = parcels.get(selectedId);
+  const mosaic = p && loadMosaic(p);
+  grid.innerHTML = '';
+  if (!mosaic) {
+    grid.hidden = true;
+    return;
+  }
+  grid.hidden = false;
+  grid.style.gridTemplateColumns = `repeat(${mosaic.k}, 1fr)`;
+  const key = parcelKey(p);
+  const mid = (mosaic.k - 1) / 2;
+  for (const tile of mosaic.tiles) {
+    const b = document.createElement('button');
+    b.className = 'tile';
+    if (overlays.hasTile(key, tile.name)) b.classList.add('done');
+    if (tile.row === mid && tile.col === mid) b.classList.add('center');
+    b.dataset.name = tile.name;
+    b.title = tile.name;
+    b.textContent = `${tile.row + 1}-${tile.col + 1}`;
+    grid.append(b);
+  }
+}
+
+const README_TR = (p, layout) =>
+  [
+    `Virtual Land — ${p.label}`,
+    '',
+    `Bu klasörde arsanın çevresinin ${layout.k}x${layout.k} üstten uydu görüntüsü var (her biri 1024x1024, kuzey yukarıda).`,
+    'vl_r0_c0 sol üst (kuzeybatı) köşedir; satır (r) aşağı, sütun (c) sağa doğru artar. Arsa ortadaki karededir.',
+    '',
+    '1) Görüntüleri yapay zekâ ile iyileştirin. Önerilen: Upscayl (https://upscayl.org, ücretsiz):',
+    '   klasörü seçin, "Batch" modunda 4x büyütün. Konumlar değişmez, dosya adları korunur.',
+    '2) Sitede "Toplu yükle" ile hepsini birden seçin. Dosya adındaki vl_rX_cY sayesinde her biri yerine oturur.',
+    '',
+    'ChatGPT kullanacaksanız: her görüntüyü ayrı ayrı yükleyip aşağıdaki istemi yapıştırın, sonra sitede',
+    'ilgili kareye tıklayıp yükleyin. Not: ChatGPT görüntüyü yeniden çizer; yollar ve sınırlar kayabilir.',
+    '',
+    ENHANCE_PROMPT_TR,
+  ].join('\n');
+
 function bindPresentation() {
   const current = () => parcels.get(selectedId);
 
   $('#captureBtn').addEventListener('click', async () => {
     const p = current();
     if (!p) return;
+    const k = Number($('#gridSize').value) || 3;
+    const layout = mosaicLayout(p.centroid, layer.radiusOf(p), k);
     status(t('capturing'), { loading: true });
     try {
-      const { blob, rect } = await captureTopDown({ sceneApi, layer, surroundings, overlays, parcel: p });
+      const blobs = await captureTiles({
+        sceneApi,
+        layer,
+        surroundings,
+        overlays,
+        parcel: p,
+        tiles: layout.tiles,
+        onProgress: (f) => status(`${t('capturing')} ${Math.round(f * 100)}%`, { loading: true }),
+      });
+      const zip = await packTiles(JSZip, layout, blobs, README_TR(p, layout));
       try {
-        localStorage.setItem(CAPTURE_KEY + parcelKey(p), JSON.stringify(rect));
+        localStorage.setItem(MOSAIC_KEY + parcelKey(p), JSON.stringify({ k, tiles: layout.tiles.map(({ name, rect, row, col }) => ({ name, rect, row, col })) }));
       } catch {
         /* storage blocked */
       }
-      download(blob, `virtual-land-${fileSafe(p.label)}-ustten.png`);
-      status(t('captureDone'), { autoHide: 7000 });
+      download(zip, `virtual-land-${fileSafe(p.label)}-gorseller.zip`);
+      renderTileGrid();
+      status(t('captureDone'), { autoHide: 8000 });
     } catch (err) {
       console.warn(err);
       status(null);
@@ -542,38 +614,78 @@ function bindPresentation() {
     }
   });
 
+  const placeTile = async (p, mosaic, tile, file) => {
+    const feathered = await featherImage(file, featherFraction(mosaic.k));
+    await overlays.add(`${parcelKey(p)}#${tile.name}`, feathered, tile.rect);
+  };
+
+  // Bulk upload: files are matched to tiles by name (vl_r1_c2…).
   const overlayInput = $('#overlayInput');
   $('#overlayBtn').addEventListener('click', () => {
     const p = current();
     if (!p) return;
-    if (!localStorage.getItem(CAPTURE_KEY + parcelKey(p))) {
+    if (!loadMosaic(p)) {
       toast(t('overlayNeedsCapture'), 'error', 6000);
       return;
     }
     overlayInput.click();
   });
   overlayInput.addEventListener('change', async () => {
-    const file = overlayInput.files[0];
+    const files = [...overlayInput.files];
     overlayInput.value = '';
     const p = current();
-    if (!file || !p) return;
-    const rect = JSON.parse(localStorage.getItem(CAPTURE_KEY + parcelKey(p)) || 'null');
-    if (!rect) return;
+    const mosaic = p && loadMosaic(p);
+    if (!files.length || !mosaic) return;
+    let placed = 0;
+    let unmatched = 0;
+    for (const file of files) {
+      let m = matchTileName(file.name);
+      // A single image for single-image mode needs no name.
+      if (!m && mosaic.k === 1 && files.length === 1) m = { row: 0, col: 0 };
+      const tile = m && mosaic.tiles.find((tt) => tt.row === m.row && tt.col === m.col);
+      if (!tile) {
+        unmatched++;
+        continue;
+      }
+      try {
+        await placeTile(p, mosaic, tile, file);
+        placed++;
+      } catch (err) {
+        console.warn(err);
+        toast(t('loadFailed', { f: file.name }), 'error');
+      }
+    }
+    afterOverlayChange(p);
+    if (placed) toast(t('tilesAdded', { n: placed }));
+    if (unmatched) toast(t('tilesUnmatched', { n: unmatched }), 'error', 8000);
+  });
+
+  // Per-cell upload: click a cell in the grid.
+  const tileInput = $('#tileInput');
+  let pendingTile = null;
+  $('#tileGrid').addEventListener('click', (e) => {
+    const cell = e.target.closest('.tile');
+    if (!cell) return;
+    pendingTile = cell.dataset.name;
+    tileInput.click();
+  });
+  tileInput.addEventListener('change', async () => {
+    const file = tileInput.files[0];
+    tileInput.value = '';
+    const p = current();
+    const mosaic = p && loadMosaic(p);
+    const tile = mosaic?.tiles.find((tt) => tt.name === pendingTile);
+    if (!file || !tile) return;
     try {
-      const bmp = await createImageBitmap(file);
-      const aspect = bmp.width / bmp.height;
-      bmp.close?.();
-      const expected = CAPTURE_SIZE.width / CAPTURE_SIZE.height;
-      if (Math.abs(aspect - expected) / expected > 0.04) toast(t('overlayAspect', { a: aspect.toFixed(2) }), 'error', 7000);
-      await overlays.add(parcelKey(p), file, rect);
-      syncSurroundingsVisibility();
-      renderDetails();
-      toast(t('overlayAdded'));
+      await placeTile(p, mosaic, tile, file);
+      afterOverlayChange(p);
+      toast(t('tilesAdded', { n: 1 }));
     } catch (err) {
       console.warn(err);
       toast(t('loadFailed', { f: file.name }), 'error');
     }
   });
+
   $('#overlayToggle').addEventListener('change', (e) => {
     const p = current();
     if (!p) return;
