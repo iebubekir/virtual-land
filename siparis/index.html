@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sipariş ver — Virtual Land</title>
+    <meta name="description" content="Arsa tanıtım videonuzu sipariş edin: arsanızı ekleyin, paketinizi seçin, logonuzu yükleyin." />
+    <meta name="theme-color" content="#12261e" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="order-page">
+    <header class="site-header">
+      <div class="wrap">
+        <a class="logo" href="../" aria-label="Virtual Land ana sayfa">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#12261e" /><path d="M10 25 17 11l14 5 -2 13 -12 3z" fill="#f4c430" fill-opacity=".25" stroke="#f4c430" stroke-width="2.4" stroke-linejoin="round" /><circle cx="10" cy="25" r="2.2" fill="#fff" /><circle cx="17" cy="11" r="2.2" fill="#fff" /><circle cx="31" cy="16" r="2.2" fill="#fff" /></svg>
+          Virtual Land
+        </a>
+        <ol class="progress" id="progress" aria-label="Sipariş adımları">
+          <li data-step="1">Arsa</li>
+          <li data-step="2">Paket</li>
+          <li data-step="3">İçerik</li>
+          <li data-step="4">İletişim</li>
+        </ol>
+      </div>
+    </header>
+
+    <main class="wrap order-grid" id="orderMain">
+      <form id="orderForm" class="order-form" novalidate>
+        <!-- STEP 1: LAND -->
+        <section class="step" data-step="1">
+          <h1>Arsanızı ekleyin</h1>
+          <p class="step-lead">KML dosyası en hızlısıdır. Elinizde yoksa Ada ve Parsel numarası yeterli.</p>
+
+          <div class="seg" role="tablist" aria-label="Arsa ekleme yöntemi">
+            <button type="button" role="tab" class="seg-btn" data-mode="kml" aria-selected="true">KML / KMZ dosyası</button>
+            <button type="button" role="tab" class="seg-btn" data-mode="manual" aria-selected="false">Ada / Parsel numarası</button>
+          </div>
+
+          <div class="mode" data-mode-panel="kml">
+            <label class="drop" id="kmlDrop">
+              <input type="file" id="kmlInput" accept=".kml,.kmz,.geojson,.json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden />
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
+              <span class="drop-title">KML dosyasını buraya bırakın</span>
+              <span class="drop-sub">ya da seçmek için tıklayın (KML, KMZ, GeoJSON)</span>
+            </label>
+            <div class="parcel-found" id="parcelFound" hidden></div>
+            <p class="hint">
+              KML’i <a href="https://parselsorgu.tkgm.gov.tr/" target="_blank" rel="noopener">parselsorgu.tkgm.gov.tr</a> adresinde
+              arsanızı bulup paylaş/indir menüsünden alabilirsiniz.
+            </p>
+          </div>
+
+          <div class="mode" data-mode-panel="manual" hidden>
+            <div class="fields two">
+              <label class="field"><span>İl</span><input name="il" autocomplete="address-level1" required /></label>
+              <label class="field"><span>İlçe</span><input name="ilce" autocomplete="address-level2" required /></label>
+              <label class="field full"><span>Mahalle / köy</span><input name="mahalle" /></label>
+              <label class="field"><span>Ada</span><input name="ada" inputmode="numeric" required /></label>
+              <label class="field"><span>Parsel</span><input name="parsel" inputmode="numeric" required /></label>
+            </div>
+            <p class="hint">İsterseniz sağdaki haritaya tıklayıp arsanın yerini işaretleyin; bulmamız hızlanır.</p>
+          </div>
+        </section>
+
+        <!-- STEP 2: PACKAGE -->
+        <section class="step" data-step="2" hidden>
+          <h1>Paketinizi seçin</h1>
+          <p class="step-lead">Ödemeyi siparişiniz onaylandıktan sonra yaparsınız.</p>
+          <div class="choice-list" id="packageList"></div>
+          <h2 class="sub">Ekler</h2>
+          <div class="extra-list" id="extraList"></div>
+        </section>
+
+        <!-- STEP 3: CONTENT -->
+        <section class="step" data-step="3" hidden>
+          <h1>Videoda neler olsun?</h1>
+          <p class="step-lead">Öne çıkmasını istediğiniz yerleri seçin ve imzanızı ekleyin.</p>
+
+          <h2 class="sub">Yakın yerler</h2>
+          <div class="chips" id="nearbyChips"></div>
+          <label class="field full"><span>Eklemek istediğiniz başka yerler (isteğe bağlı)</span><textarea name="nearbyExtra" rows="2" placeholder="Örn. Sapanca Gölü, X Organize Sanayi"></textarea></label>
+
+          <h2 class="sub">Seslendirme</h2>
+          <div class="radio-row" id="voiceList"></div>
+
+          <h2 class="sub">İmzanız</h2>
+          <div class="logo-row">
+            <label class="logo-drop" id="logoDrop">
+              <input type="file" id="logoInput" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden />
+              <img id="logoPreview" alt="" hidden />
+              <span id="logoText">Logo yükle</span>
+            </label>
+            <div class="fields two grow">
+              <label class="field"><span>Ofis / firma adı</span><input name="office" autocomplete="organization" /></label>
+              <label class="field"><span>Danışman adı</span><input name="agent" autocomplete="name" /></label>
+              <label class="field"><span>Videodaki telefon</span><input name="videoPhone" type="tel" autocomplete="tel" placeholder="05xx xxx xx xx" /></label>
+              <label class="field"><span>Web sitesi / Instagram</span><input name="web" /></label>
+            </div>
+          </div>
+          <label class="field full"><span>Satış fiyatı (videoda gösterilsin istiyorsanız)</span><input name="askingPrice" inputmode="numeric" placeholder="Örn. 1.250.000 TL" /></label>
+          <label class="field full"><span>Notlarınız</span><textarea name="notes" rows="3" placeholder="Arsanın öne çıkan özellikleri, imar durumu, manzara…"></textarea></label>
+        </section>
+
+        <!-- STEP 4: CONTACT -->
+        <section class="step" data-step="4" hidden>
+          <h1>Size nasıl ulaşalım?</h1>
+          <p class="step-lead">Siparişinizi onaylamak ve videoyu göndermek için kullanırız.</p>
+          <div class="fields two">
+            <label class="field full"><span>Ad soyad</span><input name="name" autocomplete="name" required /></label>
+            <label class="field"><span>Telefon (WhatsApp)</span><input name="phone" type="tel" autocomplete="tel" required placeholder="05xx xxx xx xx" /></label>
+            <label class="field"><span>E-posta (isteğe bağlı)</span><input name="email" type="email" autocomplete="email" /></label>
+          </div>
+          <label class="check">
+            <input type="checkbox" name="kvkk" required />
+            <span><a href="../kvkk/" target="_blank" rel="noopener">KVKK aydınlatma metnini</a> okudum; bilgilerimin siparişim için işlenmesini kabul ediyorum.</span>
+          </label>
+        </section>
+
+        <p class="form-error" id="formError" role="alert" hidden></p>
+
+        <div class="nav-row">
+          <button type="button" class="btn btn-ghost" id="backBtn" hidden>Geri</button>
+          <button type="submit" class="btn btn-dark" id="nextBtn">Devam</button>
+        </div>
+      </form>
+
+      <aside class="summary" id="summary" aria-label="Sipariş özeti">
+        <div class="map-box">
+          <div id="orderMap"></div>
+          <p class="map-empty" id="mapEmpty">Arsanız burada görünecek</p>
+        </div>
+        <dl class="sum-list" id="sumList"></dl>
+        <div class="sum-total">
+          <span>Toplam</span>
+          <strong id="sumTotal">—</strong>
+        </div>
+        <p class="sum-note">Ödeme, siparişiniz onaylandıktan sonra alınır.</p>
+      </aside>
+    </main>
+
+    <!-- DONE -->
+    <section class="wrap done" id="done" hidden>
+      <div class="done-card">
+        <p class="done-code">Sipariş no <b id="orderCode"></b></p>
+        <h1>Siparişiniz hazır, son adım WhatsApp</h1>
+        <p class="step-lead" id="doneLead">WhatsApp’ta açılan mesajı gönderin; dosyalarınızı da aynı sohbete ekleyin. Onayladığımızda ödeme bilgilerini iletiyoruz.</p>
+        <div class="done-actions">
+          <a class="btn btn-primary" id="waSend" target="_blank" rel="noopener" hidden>WhatsApp’ta gönder</a>
+          <button type="button" class="btn btn-ghost" id="filesBtn">Dosyaları indir (KML, logo, özet)</button>
+          <button type="button" class="btn btn-ghost" id="copyBtn">Sipariş metnini kopyala</button>
+        </div>
+        <pre class="done-text" id="orderText"></pre>
+        <p class="hint"><a href="./" id="newOrder">Yeni sipariş oluştur</a></p>
+      </div>
+    </section>
+
+    <script type="module" src="/src/site/order.js"></script>
+  </body>
+</html>

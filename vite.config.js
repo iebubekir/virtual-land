@@ -1,5 +1,9 @@
 import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = dirname(fileURLToPath(import.meta.url));
 
 const cesiumSource = 'node_modules/cesium/Build/Cesium';
 // Cesium loads its workers and assets at runtime from this folder.
@@ -21,5 +25,13 @@ export default defineConfig({
   ],
   build: {
     chunkSizeWarningLimit: 6000,
+    rollupOptions: {
+      input: {
+        home: resolve(root, 'index.html'),
+        harita: resolve(root, 'harita/index.html'),
+        siparis: resolve(root, 'siparis/index.html'),
+        kvkk: resolve(root, 'kvkk/index.html'),
+      },
+    },
   },
 });

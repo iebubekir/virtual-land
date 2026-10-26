@@ -1,248 +1,270 @@
 <!doctype html>
-<html lang="tr" dir="ltr">
+<html lang="tr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0d1724" />
-    <meta name="description" content="Virtual Land — TKGM KML parsel sınırlarını çevresindeki evler ve ağaçlarla 3B dünya üzerinde görün." />
-    <title>Virtual Land</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Virtual Land — Arsa tanıtım videosu</title>
+    <meta name="description" content="KML dosyanızı ya da Ada/Parsel numaranızı gönderin; parsel sınırları çizilmiş, yakın yerleri gösteren dikey arsa tanıtım videonuzu hazırlayalım." />
+    <meta name="theme-color" content="#12261e" />
+    <meta property="og:title" content="Virtual Land — Arsa tanıtım videosu" />
+    <meta property="og:description" content="Parsel sınırı, tapu bilgileri ve çevresiyle arsanızı anlatan dikey video." />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div id="globe"></div>
-
-    <header class="topbar">
-      <button class="icon-btn only-mobile" id="panelToggle" data-i18n-title="menu">
-        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-      </button>
-      <div class="brand">
-        <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
-          <circle cx="20" cy="20" r="17" class="logo-globe" />
-          <path class="logo-land" d="M12 22l6-8 9 3 2 9-10 3z" />
-          <path class="logo-grid" d="M3 20h34M20 3c-6 5-6 29 0 34M20 3c6 5 6 29 0 34" />
-        </svg>
-        <div>
-          <strong>Virtual Land</strong>
-          <span data-i18n="appTagline"></span>
-        </div>
-      </div>
-      <form class="search" id="searchForm" autocomplete="off" role="search">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
-        <input id="searchInput" type="search" data-i18n-placeholder="searchPlaceholder" />
-        <ul class="search-results" id="searchResults" hidden></ul>
-      </form>
-      <div class="top-actions">
-        <button class="btn primary" id="uploadBtn">
-          <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
-          <span data-i18n="upload"></span>
-        </button>
-        <button class="icon-btn" id="settingsBtn" data-i18n-title="settings">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
-        </button>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="logo" href="./" aria-label="Virtual Land ana sayfa">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#12261e" /><path d="M10 25 17 11l14 5 -2 13 -12 3z" fill="#f4c430" fill-opacity=".25" stroke="#f4c430" stroke-width="2.4" stroke-linejoin="round" /><circle cx="10" cy="25" r="2.2" fill="#fff" /><circle cx="17" cy="11" r="2.2" fill="#fff" /><circle cx="31" cy="16" r="2.2" fill="#fff" /></svg>
+          Virtual Land
+        </a>
+        <nav class="site-nav" aria-label="Sayfa bölümleri">
+          <a href="#nasil">Nasıl çalışır</a>
+          <a href="#icerik">Videoda neler var</a>
+          <a href="#paketler">Paketler</a>
+          <a href="#sss">Sorular</a>
+        </nav>
+        <a class="btn btn-dark" href="siparis/">Sipariş ver</a>
       </div>
     </header>
 
-    <aside class="panel" id="panel">
-      <section class="card empty" id="emptyState">
-        <h2 data-i18n="emptyTitle"></h2>
-        <p data-i18n="emptyBody"></p>
-        <div class="row">
-          <button class="btn primary" data-action="upload"><span data-i18n="upload"></span></button>
-          <button class="btn ghost" id="sampleBtn"><span data-i18n="sample"></span></button>
-        </div>
-        <details class="how">
-          <summary data-i18n="howTitle"></summary>
-          <ol>
-            <li data-i18n="how1"></li>
-            <li data-i18n="how2"></li>
-            <li data-i18n="how3"></li>
-            <li data-i18n="how4"></li>
-          </ol>
-          <a href="https://parselsorgu.tkgm.gov.tr/" target="_blank" rel="noopener" class="link" data-i18n="openTkgm"></a>
-        </details>
-      </section>
-
-      <section class="card" id="parcelsCard" hidden>
-        <div class="card-head">
-          <h3 data-i18n="parcels"></h3>
-          <button class="text-btn danger" id="clearAllBtn" data-i18n="clearAll"></button>
-        </div>
-        <ul class="parcel-list" id="parcelList"></ul>
-      </section>
-
-      <section class="card" id="detailsCard" hidden>
-        <div class="card-head">
-          <h3 id="detailsTitle"></h3>
-          <span class="chip" id="detailsSource"></span>
-        </div>
-        <p class="note" id="detailsNote" hidden></p>
-        <div class="stats" id="detailsStats"></div>
-        <dl class="attrs" id="detailsAttrs"></dl>
-        <details class="coords">
-          <summary><span data-i18n="cornerCoords"></span></summary>
-          <div class="coords-body">
-            <pre id="cornerList" dir="ltr"></pre>
-            <button class="text-btn" id="copyCoords" data-i18n="copy"></button>
+    <main>
+      <!-- HERO -->
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="hero-kicker">Emlak ofisleri ve arsa sahipleri için</p>
+            <h1>Arsanızı haritada anlatan video.</h1>
+            <p class="lead">
+              KML dosyanızı ya da Ada/Parsel numaranızı gönderin. Sınırları çizilmiş, tapu bilgileri ve yakın yerleri
+              gösteren dikey tanıtım videonuz <span data-delivery>24 saat içinde</span> hazır.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="siparis/">Sipariş ver</a>
+              <a class="btn btn-ghost" href="harita/?sample=1">Örnek arsayı 3B gör</a>
+            </div>
+            <ul class="hero-facts">
+              <li><b>1080×1920</b> Reels, TikTok ve Shorts için dikey</li>
+              <li><b>Logonuz</b> ve telefonunuz videoda</li>
+              <li><b>KML</b> yoksa Ada/Parsel yeterli</li>
+            </ul>
           </div>
-        </details>
-        <div class="row actions">
-          <a class="text-btn" id="gmapsLink" target="_blank" rel="noopener" data-i18n="googleMaps"></a>
-          <button class="text-btn danger" id="removeParcel" data-i18n="remove"></button>
+
+          <figure class="phone" aria-label="Örnek video önizlemesi">
+            <div class="phone-screen">
+              <div id="heroMap" class="hero-map"></div>
+              <div class="phone-brand">
+                <span class="dot"></span>
+                Gayrimenkul Ofisi
+              </div>
+              <div class="phone-chips">
+                <span>Mudanya merkez <b>6,1 km</b></span>
+                <span>Otoyol <b>2,4 km</b></span>
+                <span>Deniz <b>3,8 km</b></span>
+              </div>
+              <div class="phone-card">
+                <div class="pc-row">
+                  <span>Ada 101 / Parsel 7</span>
+                  <span class="pc-tag">Zeytinlik</span>
+                </div>
+                <strong>2.565 m²</strong>
+                <small>Örnek, Mudanya, Bursa</small>
+              </div>
+            </div>
+            <figcaption>Örnek kare. Görüntü: Esri</figcaption>
+          </figure>
         </div>
       </section>
 
-      <section class="card" id="presentCard" hidden>
-        <h3 data-i18n="presentTitle"></h3>
-        <ol class="steps">
-          <li>
-            <div>
-              <b data-i18n="step1"></b><small data-i18n="step1Help"></small>
-              <select id="gridSize" class="mini-select">
-                <option value="3" data-i18n="grid3"></option>
-                <option value="2" data-i18n="grid2"></option>
-                <option value="1" data-i18n="grid1"></option>
-              </select>
-            </div>
-            <button class="btn small" id="captureBtn"><span data-i18n="captureBtn"></span></button>
-          </li>
-          <li>
-            <div>
-              <b data-i18n="step2"></b><small data-i18n="step2Help"></small>
-              <span class="row tight">
-                <a class="text-btn" href="https://upscayl.org/" target="_blank" rel="noopener">Upscayl</a>
-                <button class="text-btn" id="copyPromptBtn" data-i18n="copyPrompt"></button>
-              </span>
-            </div>
-          </li>
-          <li class="col">
-            <div class="row between full">
-              <div><b data-i18n="step3"></b><small data-i18n="step3Help"></small></div>
-              <button class="btn small" id="overlayBtn"><span data-i18n="uploadAll"></span></button>
-            </div>
-            <div class="tile-grid" id="tileGrid"></div>
-          </li>
-        </ol>
-        <div class="overlay-row" id="overlayRow" hidden>
-          <label class="toggle"><input type="checkbox" id="overlayToggle" /><span data-i18n="showEnhanced"></span></label>
-          <button class="text-btn danger" id="overlayRemove" data-i18n="remove"></button>
-        </div>
-        <div class="video-box">
-          <b data-i18n="step4"></b>
-          <label class="field inline">
-            <span data-i18n="videoFormat"></span>
-            <select id="videoFormat">
-              <option value="portrait" data-i18n="formatPortrait"></option>
-              <option value="landscape" data-i18n="formatLandscape"></option>
-            </select>
-          </label>
-          <label class="toggle"><input type="checkbox" id="disclaimerToggle" checked /><span data-i18n="disclaimerToggle"></span></label>
-          <button class="btn primary wide" id="recordBtn">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="3" fill="currentColor" /></svg>
-            <span data-i18n="recordVideo"></span>
-          </button>
+      <!-- HOW IT WORKS -->
+      <section class="band" id="nasil">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Dört adımda video</h2>
+            <p>Siparişiniz birkaç dakikanızı alır, gerisi bizde.</p>
+          </div>
+          <ol class="steps">
+            <li>
+              <h3>Arsanızı gönderin</h3>
+              <p>TKGM Parsel Sorgu’dan aldığınız KML/KMZ dosyasını yükleyin ya da il, ilçe, mahalle, Ada ve Parsel numarasını yazın.</p>
+            </li>
+            <li>
+              <h3>Paketinizi seçin</h3>
+              <p>Harita sunumu, sinematik video ya da yatay video ve sosyal medya görselleriyle tam paket.</p>
+            </li>
+            <li>
+              <h3>İmzanızı ekleyin</h3>
+              <p>Logonuzu, ofis adınızı ve telefonunuzu yükleyin; videoda öne çıkmasını istediğiniz yakın yerleri seçin.</p>
+            </li>
+            <li>
+              <h3>Videonuz WhatsApp’tan gelsin</h3>
+              <p>Sipariş WhatsApp’a düşer, onaylıyoruz ve videonuzu <span data-delivery>24 saat içinde</span> gönderiyoruz.</p>
+            </li>
+          </ol>
         </div>
       </section>
 
-      <section class="card" id="layersCard">
-        <h3 data-i18n="layers"></h3>
-        <label class="field">
-          <span data-i18n="viewMode"></span>
-          <select id="viewModeSelect">
-            <option value="osm" data-i18n="modeOsm"></option>
-            <option value="photo" data-i18n="modePhoto"></option>
-          </select>
-          <small class="hint" id="photoHint" data-i18n="modePhotoNeedsKey" hidden></small>
-        </label>
-        <label class="field">
-          <span data-i18n="basemap"></span>
-          <select id="basemapSelect">
-            <option value="satelliteLabels" data-i18n="satelliteLabels"></option>
-            <option value="satellite" data-i18n="satellite"></option>
-            <option value="streets" data-i18n="streets"></option>
-          </select>
-        </label>
-        <div id="osmOptions">
-          <label class="toggle"><input type="checkbox" id="surroundingsToggle" /><span data-i18n="surroundings"></span></label>
-          <label class="field inline">
-            <span data-i18n="radius"></span>
-            <select id="radiusSelect">
-              <option value="300">300 m</option>
-              <option value="600">600 m</option>
-              <option value="1000">1 km</option>
-              <option value="1500">1,5 km</option>
-            </select>
-          </label>
+      <!-- WHAT'S IN THE VIDEO -->
+      <section class="band band-sheet" id="icerik">
+        <div class="wrap content-grid">
+          <div class="deed" aria-label="Videoda gösterilen parsel bilgileri örneği">
+            <div class="deed-corner tl"></div>
+            <div class="deed-corner tr"></div>
+            <div class="deed-corner bl"></div>
+            <div class="deed-corner br"></div>
+            <p class="deed-title">Parsel bilgileri</p>
+            <dl>
+              <dt>İl / İlçe</dt>
+              <dd>Bursa / Mudanya</dd>
+              <dt>Mahalle</dt>
+              <dd>Örnek</dd>
+              <dt>Ada / Parsel</dt>
+              <dd>101 / 7</dd>
+              <dt>Alan</dt>
+              <dd>2.565,40 m²</dd>
+              <dt>Nitelik</dt>
+              <dd>Zeytinlik</dd>
+            </dl>
+            <p class="deed-title">Yakın yerler</p>
+            <ul class="deed-near">
+              <li><span>Mudanya merkez</span><b>6,1 km</b></li>
+              <li><span>Otoyol bağlantısı</span><b>2,4 km</b></li>
+              <li><span>Sahil</span><b>3,8 km</b></li>
+              <li><span>Okul</span><b>1,2 km</b></li>
+            </ul>
+          </div>
+          <div class="content-copy">
+            <h2>Alıcının soracağı her şey tek videoda</h2>
+            <ul class="content-list">
+              <li>
+                <h3>Sınır ve alan</h3>
+                <p>Parsel sınırı uydu görüntüsü üzerine çizilir; tapu alanı, nitelik ve Ada/Parsel bilgisi ekranda kalır.</p>
+              </li>
+              <li>
+                <h3>Çevresi ve ulaşım</h3>
+                <p>Şehir merkezi, ana yol, okul, sahil gibi yakın yerler mesafeleriyle gösterilir; ulaşım yolu haritada vurgulanır.</p>
+              </li>
+              <li>
+                <h3>Sizin markanız</h3>
+                <p>Logonuz, ofis adınız ve telefonunuz videonun başında ve sonunda. Video sizin adınıza paylaşılmaya hazır gelir.</p>
+              </li>
+            </ul>
+          </div>
         </div>
-        <label class="toggle"><input type="checkbox" id="fenceToggle" /><span data-i18n="fence"></span></label>
-        <label class="toggle"><input type="checkbox" id="edgeToggle" /><span data-i18n="edgeLabels"></span></label>
-        <label class="toggle"><input type="checkbox" id="shadowToggle" /><span data-i18n="shadows"></span></label>
       </section>
-    </aside>
 
-    <div class="map-toolbar" id="mapToolbar" hidden>
-      <button class="tool" id="tool3d"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z M12 12l8-4.5M12 12v9M12 12L4 7.5" /></svg><span data-i18n="view3d"></span></button>
-      <button class="tool" id="toolTop"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M4 12h16M12 4v16" /></svg><span data-i18n="topView"></span></button>
-      <button class="tool" id="toolOrbit"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" /></svg><span id="orbitLabel" data-i18n="orbit"></span></button>
-    </div>
+      <!-- PACKAGES -->
+      <section class="band" id="paketler">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Paketler</h2>
+            <p>Fiyatlar video başınadır. Ödemeyi siparişiniz onaylandıktan sonra yaparsınız.</p>
+          </div>
+          <div class="packages" id="packages"></div>
+        </div>
+      </section>
 
-    <div class="status" id="status" hidden>
-      <span class="spinner" aria-hidden="true"></span>
-      <span id="statusText"></span>
-      <button class="text-btn" id="statusAction" hidden></button>
-    </div>
+      <!-- LIVE DEMO -->
+      <section class="demo">
+        <div class="wrap demo-grid">
+          <div>
+            <h2>Önce kendiniz bakın</h2>
+            <p>
+              Arsanızın KML dosyasını 3B haritaya sürükleyin: sınırları, kenar uzunlukları, alanı ve çevresindeki evlerle
+              ağaçlar saniyeler içinde çizilir. Ücretsiz, kayıt gerekmez.
+            </p>
+          </div>
+          <a class="btn btn-primary" href="harita/">3B haritayı aç</a>
+        </div>
+      </section>
 
-    <div class="toasts" id="toasts" aria-live="polite"></div>
+      <!-- FAQ -->
+      <section class="band" id="sss">
+        <div class="wrap faq-grid">
+          <div class="section-head">
+            <h2>Sık sorulanlar</h2>
+            <p>Yanıtını bulamadığınız soruyu WhatsApp’tan sorabilirsiniz.</p>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>KML dosyam yok, yine de sipariş verebilir miyim?</summary>
+              <p>Evet. İl, ilçe, mahalle, Ada ve Parsel numarasını yazmanız yeterli; parsel sınırını TKGM kaydından biz alırız. İsterseniz haritada konumu da işaretleyebilirsiniz.</p>
+            </details>
+            <details>
+              <summary>KML dosyasını nereden alırım?</summary>
+              <p>parselsorgu.tkgm.gov.tr adresinde arsanızı bulun, paylaş/indir menüsünden KML’i seçin. Dosyayı sipariş formuna sürüklemeniz yeterli.</p>
+            </details>
+            <details>
+              <summary>Videoda hangi yakın yerler gösterilir?</summary>
+              <p>Sipariş sırasında listeden seçtikleriniz (şehir merkezi, okul, hastane, sahil gibi) ve not olarak yazdığınız yerler. Mesafeleri biz ölçeriz.</p>
+            </details>
+            <details>
+              <summary>Sinematik paketteki görüntüler gerçek drone çekimi mi?</summary>
+              <p>Hayır. Uydu görüntüleri yapay zekâ ile netleştirilir ve kamera hareketleri bilgisayarda oluşturulur. Videoda bunu belirten küçük bir not yer alır; alıcıyı yanıltmamak için önemlidir.</p>
+            </details>
+            <details>
+              <summary>Ödemeyi nasıl yapıyorum?</summary>
+              <p>Siparişiniz WhatsApp’tan bize ulaşınca kontrol edip onaylıyoruz ve ödeme bilgilerini iletiyoruz. Ödeme sonrası üretime başlıyoruz.</p>
+            </details>
+            <details>
+              <summary>Video ne zaman teslim edilir?</summary>
+              <p>Ödeme onayından sonra <span data-delivery>24 saat içinde</span>. Acil teslim seçeneğiyle aynı gün.</p>
+            </details>
+            <details>
+              <summary>Değişiklik isteyebilir miyim?</summary>
+              <p>Tam Paket’te bir revizyon dahildir; diğer paketlere ek revizyon hakkı ekleyebilirsiniz. Yazım ve bilgi hataları her pakette ücretsiz düzeltilir.</p>
+            </details>
+          </div>
+        </div>
+      </section>
 
-    <div class="rec-overlay" id="recOverlay" hidden>
-      <div class="rec-badge"><span class="rec-dot"></span><span id="recText"></span></div>
-    </div>
+      <section class="final">
+        <div class="wrap final-inner">
+          <h2>Arsanızın sınırları hazır, videosu birkaç dakika uzaklıkta.</h2>
+          <a class="btn btn-primary" href="siparis/">Sipariş ver</a>
+        </div>
+      </section>
+    </main>
 
-    <input type="file" id="overlayInput" accept="image/png,image/jpeg,image/webp" multiple hidden />
-    <input type="file" id="tileInput" accept="image/png,image/jpeg,image/webp" hidden />
-
-    <div class="dropzone" id="dropzone" hidden>
-      <div>
-        <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
-        <p data-i18n="dropHere"></p>
+    <footer class="site-footer">
+      <div class="wrap">
+        <div>
+          <a class="logo" href="./">
+            <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#2c4339" /><path d="M10 25 17 11l14 5 -2 13 -12 3z" fill="#f4c430" fill-opacity=".25" stroke="#f4c430" stroke-width="2.4" stroke-linejoin="round" /></svg>
+            Virtual Land
+          </a>
+          <p>Arsalar için harita tabanlı tanıtım videoları.</p>
+        </div>
+        <div>
+          <h4>Site</h4>
+          <ul>
+            <li><a href="siparis/">Sipariş ver</a></li>
+            <li><a href="harita/">3B harita</a></li>
+            <li><a href="#paketler">Paketler</a></li>
+            <li><a href="kvkk/">KVKK aydınlatma metni</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>İletişim</h4>
+          <ul id="contactList">
+            <li data-wa-item hidden><a data-wa href="#">WhatsApp</a></li>
+            <li data-mail-item hidden><a data-mail href="#"></a></li>
+            <li><a href="siparis/">Sipariş formu</a></li>
+          </ul>
+        </div>
+        <div class="fine">
+          <span>© <span data-year></span> Virtual Land</span>
+          <span>Uydu görüntüleri: Esri, Maxar, Earthstar Geographics. Harita verisi: © OpenStreetMap katkıcıları.</span>
+        </div>
       </div>
-    </div>
+    </footer>
 
-    <dialog id="settingsDialog">
-      <form method="dialog" class="settings-form" id="settingsForm">
-        <h2 data-i18n="settingsTitle"></h2>
-        <label class="field">
-          <span data-i18n="language"></span>
-          <select name="lang" id="langSelect"></select>
-        </label>
-        <label class="field">
-          <span data-i18n="googleKey"></span>
-          <input name="googleKey" type="password" dir="ltr" autocomplete="off" spellcheck="false" placeholder="AIza…" />
-          <small class="hint"><span data-i18n="googleKeyHelp"></span> <a href="https://developers.google.com/maps/documentation/tile/get-api-key" target="_blank" rel="noopener" data-i18n="getKey"></a></small>
-        </label>
-        <label class="field">
-          <span data-i18n="ionToken"></span>
-          <input name="ionToken" type="password" dir="ltr" autocomplete="off" spellcheck="false" placeholder="eyJhbGciOi…" />
-          <small class="hint"><span data-i18n="ionTokenHelp"></span> <a href="https://ion.cesium.com/tokens" target="_blank" rel="noopener" data-i18n="getKey"></a></small>
-        </label>
-        <label class="field">
-          <span data-i18n="quality"></span>
-          <select name="quality">
-            <option value="high" data-i18n="qualityHigh"></option>
-            <option value="normal" data-i18n="qualityNormal"></option>
-            <option value="low" data-i18n="qualityLow"></option>
-          </select>
-        </label>
-        <div class="row end">
-          <button class="btn ghost" value="cancel" formnovalidate data-i18n="cancel"></button>
-          <button class="btn primary" value="save" data-i18n="save"></button>
-        </div>
-      </form>
-    </dialog>
+    <a class="wa-float" data-wa href="#" aria-label="WhatsApp ile yazın" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.5-.3z" /></svg>
+    </a>
 
-    <input type="file" id="fileInput" accept=".kml,.kmz,.geojson,.json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" multiple hidden />
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/site/landing.js"></script>
   </body>
 </html>

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="tr" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d1724" />
+    <meta name="description" content="Virtual Land — TKGM KML parsel sınırlarını çevresindeki evler ve ağaçlarla 3B dünya üzerinde görün." />
+    <title>Virtual Land</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="globe"></div>
+
+    <header class="topbar">
+      <button class="icon-btn only-mobile" id="panelToggle" data-i18n-title="menu">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+      </button>
+      <a class="brand" href="../" title="Ana sayfa">
+        <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" class="logo-globe" />
+          <path class="logo-land" d="M12 22l6-8 9 3 2 9-10 3z" />
+          <path class="logo-grid" d="M3 20h34M20 3c-6 5-6 29 0 34M20 3c6 5 6 29 0 34" />
+        </svg>
+        <div>
+          <strong>Virtual Land</strong>
+          <span data-i18n="appTagline"></span>
+        </div>
+      </a>
+      <form class="search" id="searchForm" autocomplete="off" role="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
+        <input id="searchInput" type="search" data-i18n-placeholder="searchPlaceholder" />
+        <ul class="search-results" id="searchResults" hidden></ul>
+      </form>
+      <div class="top-actions">
+        <button class="btn primary" id="uploadBtn">
+          <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
+          <span data-i18n="upload"></span>
+        </button>
+        <button class="icon-btn" id="settingsBtn" data-i18n-title="settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <aside class="panel" id="panel">
+      <section class="card empty" id="emptyState">
+        <h2 data-i18n="emptyTitle"></h2>
+        <p data-i18n="emptyBody"></p>
+        <div class="row">
+          <button class="btn primary" data-action="upload"><span data-i18n="upload"></span></button>
+          <button class="btn ghost" id="sampleBtn"><span data-i18n="sample"></span></button>
+        </div>
+        <details class="how">
+          <summary data-i18n="howTitle"></summary>
+          <ol>
+            <li data-i18n="how1"></li>
+            <li data-i18n="how2"></li>
+            <li data-i18n="how3"></li>
+            <li data-i18n="how4"></li>
+          </ol>
+          <a href="https://parselsorgu.tkgm.gov.tr/" target="_blank" rel="noopener" class="link" data-i18n="openTkgm"></a>
+        </details>
+      </section>
+
+      <section class="card" id="parcelsCard" hidden>
+        <div class="card-head">
+          <h3 data-i18n="parcels"></h3>
+          <button class="text-btn danger" id="clearAllBtn" data-i18n="clearAll"></button>
+        </div>
+        <ul class="parcel-list" id="parcelList"></ul>
+      </section>
+
+      <section class="card" id="detailsCard" hidden>
+        <div class="card-head">
+          <h3 id="detailsTitle"></h3>
+          <span class="chip" id="detailsSource"></span>
+        </div>
+        <p class="note" id="detailsNote" hidden></p>
+        <div class="stats" id="detailsStats"></div>
+        <dl class="attrs" id="detailsAttrs"></dl>
+        <details class="coords">
+          <summary><span data-i18n="cornerCoords"></span></summary>
+          <div class="coords-body">
+            <pre id="cornerList" dir="ltr"></pre>
+            <button class="text-btn" id="copyCoords" data-i18n="copy"></button>
+          </div>
+        </details>
+        <div class="row actions">
+          <a class="text-btn" id="gmapsLink" target="_blank" rel="noopener" data-i18n="googleMaps"></a>
+          <button class="text-btn danger" id="removeParcel" data-i18n="remove"></button>
+        </div>
+      </section>
+
+      <section class="card" id="presentCard" hidden>
+        <h3 data-i18n="presentTitle"></h3>
+        <ol class="steps">
+          <li>
+            <div>
+              <b data-i18n="step1"></b><small data-i18n="step1Help"></small>
+              <select id="gridSize" class="mini-select">
+                <option value="3" data-i18n="grid3"></option>
+                <option value="2" data-i18n="grid2"></option>
+                <option value="1" data-i18n="grid1"></option>
+              </select>
+            </div>
+            <button class="btn small" id="captureBtn"><span data-i18n="captureBtn"></span></button>
+          </li>
+          <li>
+            <div>
+              <b data-i18n="step2"></b><small data-i18n="step2Help"></small>
+              <span class="row tight">
+                <a class="text-btn" href="https://upscayl.org/" target="_blank" rel="noopener">Upscayl</a>
+                <button class="text-btn" id="copyPromptBtn" data-i18n="copyPrompt"></button>
+              </span>
+            </div>
+          </li>
+          <li class="col">
+            <div class="row between full">
+              <div><b data-i18n="step3"></b><small data-i18n="step3Help"></small></div>
+              <button class="btn small" id="overlayBtn"><span data-i18n="uploadAll"></span></button>
+            </div>
+            <div class="tile-grid" id="tileGrid"></div>
+          </li>
+        </ol>
+        <div class="overlay-row" id="overlayRow" hidden>
+          <label class="toggle"><input type="checkbox" id="overlayToggle" /><span data-i18n="showEnhanced"></span></label>
+          <button class="text-btn danger" id="overlayRemove" data-i18n="remove"></button>
+        </div>
+        <div class="video-box">
+          <b data-i18n="step4"></b>
+          <label class="field inline">
+            <span data-i18n="videoFormat"></span>
+            <select id="videoFormat">
+              <option value="portrait" data-i18n="formatPortrait"></option>
+              <option value="landscape" data-i18n="formatLandscape"></option>
+            </select>
+          </label>
+          <label class="toggle"><input type="checkbox" id="disclaimerToggle" checked /><span data-i18n="disclaimerToggle"></span></label>
+          <button class="btn primary wide" id="recordBtn">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="3" fill="currentColor" /></svg>
+            <span data-i18n="recordVideo"></span>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="layersCard">
+        <h3 data-i18n="layers"></h3>
+        <label class="field">
+          <span data-i18n="viewMode"></span>
+          <select id="viewModeSelect">
+            <option value="osm" data-i18n="modeOsm"></option>
+            <option value="photo" data-i18n="modePhoto"></option>
+          </select>
+          <small class="hint" id="photoHint" data-i18n="modePhotoNeedsKey" hidden></small>
+        </label>
+        <label class="field">
+          <span data-i18n="basemap"></span>
+          <select id="basemapSelect">
+            <option value="satelliteLabels" data-i18n="satelliteLabels"></option>
+            <option value="satellite" data-i18n="satellite"></option>
+            <option value="streets" data-i18n="streets"></option>
+          </select>
+        </label>
+        <div id="osmOptions">
+          <label class="toggle"><input type="checkbox" id="surroundingsToggle" /><span data-i18n="surroundings"></span></label>
+          <label class="field inline">
+            <span data-i18n="radius"></span>
+            <select id="radiusSelect">
+              <option value="300">300 m</option>
+              <option value="600">600 m</option>
+              <option value="1000">1 km</option>
+              <option value="1500">1,5 km</option>
+            </select>
+          </label>
+        </div>
+        <label class="toggle"><input type="checkbox" id="fenceToggle" /><span data-i18n="fence"></span></label>
+        <label class="toggle"><input type="checkbox" id="edgeToggle" /><span data-i18n="edgeLabels"></span></label>
+        <label class="toggle"><input type="checkbox" id="shadowToggle" /><span data-i18n="shadows"></span></label>
+      </section>
+    </aside>
+
+    <div class="map-toolbar" id="mapToolbar" hidden>
+      <button class="tool" id="tool3d"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z M12 12l8-4.5M12 12v9M12 12L4 7.5" /></svg><span data-i18n="view3d"></span></button>
+      <button class="tool" id="toolTop"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M4 12h16M12 4v16" /></svg><span data-i18n="topView"></span></button>
+      <button class="tool" id="toolOrbit"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" /></svg><span id="orbitLabel" data-i18n="orbit"></span></button>
+    </div>
+
+    <div class="status" id="status" hidden>
+      <span class="spinner" aria-hidden="true"></span>
+      <span id="statusText"></span>
+      <button class="text-btn" id="statusAction" hidden></button>
+    </div>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <div class="rec-overlay" id="recOverlay" hidden>
+      <div class="rec-badge"><span class="rec-dot"></span><span id="recText"></span></div>
+    </div>
+
+    <input type="file" id="overlayInput" accept="image/png,image/jpeg,image/webp" multiple hidden />
+    <input type="file" id="tileInput" accept="image/png,image/jpeg,image/webp" hidden />
+
+    <div class="dropzone" id="dropzone" hidden>
+      <div>
+        <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
+        <p data-i18n="dropHere"></p>
+      </div>
+    </div>
+
+    <dialog id="settingsDialog">
+      <form method="dialog" class="settings-form" id="settingsForm">
+        <h2 data-i18n="settingsTitle"></h2>
+        <label class="field">
+          <span data-i18n="language"></span>
+          <select name="lang" id="langSelect"></select>
+        </label>
+        <label class="field">
+          <span data-i18n="googleKey"></span>
+          <input name="googleKey" type="password" dir="ltr" autocomplete="off" spellcheck="false" placeholder="AIza…" />
+          <small class="hint"><span data-i18n="googleKeyHelp"></span> <a href="https://developers.google.com/maps/documentation/tile/get-api-key" target="_blank" rel="noopener" data-i18n="getKey"></a></small>
+        </label>
+        <label class="field">
+          <span data-i18n="ionToken"></span>
+          <input name="ionToken" type="password" dir="ltr" autocomplete="off" spellcheck="false" placeholder="eyJhbGciOi…" />
+          <small class="hint"><span data-i18n="ionTokenHelp"></span> <a href="https://ion.cesium.com/tokens" target="_blank" rel="noopener" data-i18n="getKey"></a></small>
+        </label>
+        <label class="field">
+          <span data-i18n="quality"></span>
+          <select name="quality">
+            <option value="high" data-i18n="qualityHigh"></option>
+            <option value="normal" data-i18n="qualityNormal"></option>
+            <option value="low" data-i18n="qualityLow"></option>
+          </select>
+        </label>
+        <div class="row end">
+          <button class="btn ghost" value="cancel" formnovalidate data-i18n="cancel"></button>
+          <button class="btn primary" value="save" data-i18n="save"></button>
+        </div>
+      </form>
+    </dialog>
+
+    <input type="file" id="fileInput" accept=".kml,.kmz,.geojson,.json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" multiple hidden />
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

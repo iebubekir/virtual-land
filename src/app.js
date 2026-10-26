@@ -203,7 +203,7 @@ async function handleFiles(files) {
 }
 
 async function loadSample() {
-  const res = await fetch(`samples/${SAMPLE_FILE}`);
+  const res = await fetch(new URL(/* @vite-ignore */ `../samples/${SAMPLE_FILE}`, import.meta.url));
   const buf = await res.arrayBuffer();
   await handleFiles([{ name: SAMPLE_FILE, arrayBuffer: async () => buf }]);
 }

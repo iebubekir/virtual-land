@@ -16,6 +16,18 @@ TKGM’den (Parsel Sorgu) alınan **KML / KMZ / GeoJSON** dosyalarını 3B düny
 - 💾 Yüklenen parseller tarayıcıda saklanır
 - 🇹🇷 Türkçe arayüz (Ayarlar’dan Arapça da seçilebilir), mobil uyumlu
 
+## Site yapısı
+
+| Sayfa | Adres | Görev |
+|---|---|---|
+| Ana sayfa | `/` | Tanıtım, paketler, SSS |
+| Sipariş | `/siparis/` | 4 adımlı sipariş formu, sipariş WhatsApp’a gider |
+| 3B harita | `/harita/` | KML ile 3B parsel görüntüleyici ve video araçları |
+| KVKK | `/kvkk/` | Aydınlatma metni şablonu (yayından önce doldurun) |
+
+**Fiyatlar, WhatsApp numarası, teslim süresi:** `src/site/config.js` dosyasını düzenleyin.
+WhatsApp numarası boşken sipariş sayfası mesajı kopyalama seçeneği sunar.
+
 ## TKGM’den KML nasıl alınır?
 
 1. <https://parselsorgu.tkgm.gov.tr/> adresini açın
